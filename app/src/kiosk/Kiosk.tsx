@@ -8,10 +8,11 @@ import { answerSource, type Answer } from '../lib/assistant';
 import { Icon, type IconName } from '../lib/Icon';
 import { T, plain } from '../lib/ph';
 import { Qr } from '../lib/Qr';
+import { CplMark, CplPattern } from '../lib/CplMark';
 import { speech } from '../lib/speech';
 import './kiosk.css';
 
-type Screen = 'attract' | 'home' | 'other' | 'p0' | 'plan' | 'step' | 'take' | 'px' | 'fx' | 'fxother' | 'm0' | 'm1' | 'rules';
+type Screen = 'attract' | 'home' | 'other' | 'p0' | 'plan' | 'step' | 'take' | 'px' | 'fx' | 'fxother' | 'm0' | 'm1' | 'rules' | 'pc';
 type Ov = '' | 'assistant' | 'a11y' | 'staff' | 'idle';
 type YN = '' | 'y' | 'n';
 
@@ -258,9 +259,10 @@ export default function Kiosk() {
   /* ---------- read aloud ---------- */
   const readMap: Record<Screen, string> = {
     attract: '',
-    home: 'What brings you in? Four choices: I need to print something. My print didn’t come out. I want to 3D print something. Something else.',
+    home: 'What brings you in? Four choices: Print something. 3D print something. Computers and Wi‑Fi. Something else.',
+    pc: 'Computers and Wi‑Fi. ' + SITE.computers.facts.map((f) => f.k + ': ' + plain(f.v)).join(' '),
     other: 'Staff can help with that. ' + plain(SITE.staff) + ' ' + plain(SITE.hours),
-    p0: 'Where’s your file? Four choices: On my phone. On a USB drive. In my email. I need to type or make it here.',
+    p0: 'Where’s your file? Four choices: On my phone. On a USB drive. In my email. I need to type or make it here. Or, if you already printed and it didn’t come out, tap Print didn’t come out.',
     plan: plan.title + '. ' + plan.steps.map((st, i) => `Step ${i + 1}: ${plain(st.text)}`).join(' '),
     step: `Step ${stepN + 1} of ${plan.steps.length}. ${plain(cur.text)} ${plain(cur.detail)}`,
     take: 'How do you want to take your plan? Tell staff at the desk: ' + (s.takeFrom === 'fix' ? fix.say : plan.say),
@@ -291,13 +293,13 @@ export default function Kiosk() {
           <div className="info">
             <span className="eyebrow">Welcome to TechCentral</span>
             <h1 className="title" tabIndex={-1}>What brings you in?</h1>
-            <p className="lead">Tap one. You can start over any time.</p>
+            <p className="lead">Pick what you’re working on. We’ll take it from there.</p>
           </div>
           <div className="act">
             <div className="choices c2">
-              <Choice big icon="printer" label="I need to print something" sub="Paper, today. We’ll make you a short plan." onClick={() => go({ screen: 'p0' })} />
-              <Choice big icon="info" label="My print didn’t come out" sub="That happens. Let’s find it." onClick={() => go({ screen: 'px' })} />
-              <Choice big icon="cube" label="I want to 3D print something" sub="See what’s possible, the rules, and your options." onClick={() => go({ screen: 'm0' })} />
+              <Choice big icon="printer" label="Print something" sub="Documents, forms, and photos — or a print that didn’t come out." onClick={() => go({ screen: 'p0' })} />
+              <Choice big icon="cube" label="3D print something" sub="What’s possible, the rules, and your options." onClick={() => go({ screen: 'm0' })} />
+              <Choice big icon="wifi" label="Computers & Wi‑Fi" sub="Get logged in, get online, and keep your work." onClick={() => go({ screen: 'pc' })} />
               <Choice big icon="user" label="Something else" sub="Where staff are, and today’s hours." onClick={() => go({ screen: 'other' })} />
             </div>
             <p className="src">This screen is public. Nothing you choose here is saved.</p>
@@ -321,6 +323,30 @@ export default function Kiosk() {
         </section>
       );
 
+      case 'pc': return (
+        <section className="scr">
+          <div className="info">
+            <span className="eyebrow">Computers &amp; Wi‑Fi</span>
+            <h1 className="title" tabIndex={-1}>Get online and get to work.</h1>
+            <p className="lead">{SITE.computers.lead}</p>
+          </div>
+          <div className="act">
+            <dl className="rules">
+              {SITE.computers.facts.map((f) => <div className="rule" key={f.k}><dt className="rk">{f.k}</dt><dd style={{ margin: 0 }}><T s={f.v} /></dd></div>)}
+            </dl>
+            <div className="card" style={{ alignItems: 'center' }}>
+              <span className="cic"><Icon n="user" w={1.75} /></span>
+              <div className="cbody"><span className="th" style={{ fontSize: '.9em' }}>Staff can set you up.</span><span className="tb"><Staff /></span></div>
+            </div>
+            <div className="cta">
+              <button className="btn btn-p" onClick={() => go({ screen: 'p0' })}><Icon n="printer" />I need to print, too</button>
+              <button className="btn btn-s" onClick={() => openOv('staff')}>Where staff are</button>
+            </div>
+            <Src k="site" />
+          </div>
+        </section>
+      );
+
       case 'p0': return (
         <section className="scr">
           <div className="info">
@@ -334,6 +360,10 @@ export default function Kiosk() {
               <Choice big icon="usb" label="On a USB drive" sub="Plug it into any patron computer." onClick={() => go({ screen: 'plan', plan: 'usb' })} />
               <Choice big icon="mail" label="In my email" sub="Open it on a patron computer." onClick={() => go({ screen: 'plan', plan: 'email' })} />
               <Choice big icon="monitor" label="I need to type or make it here" sub="Use a computer here to make it, then print." onClick={() => go({ screen: 'plan', plan: 'make' })} />
+            </div>
+            <div className="trouble">
+              <span className="hint">Already sent it?</span>
+              <Choice icon="info" label="My print didn’t come out" sub="Missing job, not enough money, cut off, or card trouble." onClick={() => go({ screen: 'px' })} />
             </div>
           </div>
         </section>
@@ -368,6 +398,7 @@ export default function Kiosk() {
               <button className="btn btn-p" onClick={() => go({ screen: 'take', takeFrom: 'plan' })}>Take this with you</button>
               <button className="btn btn-s" onClick={() => openAsk(plan.ctx)}><Icon n="chat" />Ask about this plan</button>
             </div>
+            {plan.ctx === 'print' && <button className="link" onClick={() => go({ screen: 'px' })}>Already printed and it didn’t come out?</button>}
             <Src k={s.plan} />
           </div>
         </section>
@@ -496,7 +527,7 @@ export default function Kiosk() {
       case 'px': return (
         <section className="scr">
           <div className="info">
-            <span className="eyebrow">My print didn’t come out</span>
+            <span className="eyebrow">Printing · Didn’t come out</span>
             <h1 className="title" tabIndex={-1}>What happened?</h1>
             <p className="lead">That happens. Pick the closest match.</p>
           </div>
@@ -837,15 +868,17 @@ export default function Kiosk() {
 
         {s.screen === 'attract' && (
           <button className="attract" onClick={() => set({ screen: 'home', hist: [], dir: 'fwd' })}>
-            <span className="att-bg" aria-hidden="true"><i /><i /><i /></span>
-            <span className="att-top">TechCentral · Cleveland Public Library</span>
+            <span className="att-bg" aria-hidden="true"><CplPattern className="att-pattern" /></span>
+            <span className="att-top"><CplMark className="att-logo" /><span><b>TechCentral</b><span>Cleveland Public Library</span></span></span>
             <span className="att-mid">
-              <span className="att-ics"><span><Icon n="printer" w={1.5} /></span><span><Icon n="cube" w={1.5} /></span></span>
-              <span className="att-title">Printing &amp; 3D printing help</span>
-              <span className="att-sub">A short plan for your visit, in under two minutes.</span>
+              <span className="att-ics">
+                <span><Icon n="printer" w={1.5} /></span><span><Icon n="cube" w={1.5} /></span><span><Icon n="wifi" w={1.5} /></span><span><Icon n="spark" w={1.5} /></span>
+              </span>
+              <span className="att-title">Your guide to TechCentral</span>
+              <span className="att-sub">Print, 3D print, get online, or make something new. Tell us what you’re working on, and we’ll map out your visit.</span>
             </span>
             <span className="att-low">
-              <span className="att-tap">Tap anywhere to start<Icon n="right" /></span>
+              <span className="att-tap">Tap anywhere to begin<Icon n="right" /></span>
               <span className="att-foot">This screen is public. Nothing you choose is saved.</span>
             </span>
           </button>
@@ -853,7 +886,7 @@ export default function Kiosk() {
 
         {s.screen !== 'attract' && (
           <div className="session">
-            <header className="hdr"><span><b>TechCentral</b> · Cleveland Public Library</span><span>Printing &amp; 3D printing help</span></header>
+            <header className="hdr"><span><b>TechCentral</b> · Cleveland Public Library</span><span>Your guide to TechCentral</span></header>
             <div className="stage">
               <main className="main" ref={mainRef} onScroll={(e) => { lastScroll.current = e.currentTarget.scrollTop; }} aria-hidden={shown ? true : undefined} inert={shown ? true : undefined}>
                 {leavingView && (

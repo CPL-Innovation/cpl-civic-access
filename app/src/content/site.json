@@ -7,5 +7,26 @@
   "hours": "Open today [[today's hours|from 9 to 7]].",
   "slipFree": "Free.[[confirm the printed slip is free|]]",
   "slipWhere": "[[where the slip comes out|from the slot below the screen]]",
-  "shortUrlNote": "[[real short URLs and QR codes|]]"
+  "shortUrlNote": "[[real short URLs and QR codes|]]",
+  "computers": {
+    "lead": "Full step-by-step help for computers is on the way. For now, here’s the short version — and staff can get you set up in a minute.",
+    "facts": [
+      {
+        "k": "Wi‑Fi",
+        "v": "Join [[public Wi‑Fi network name|CPL-Public]]. No password. Accept the terms page that opens."
+      },
+      {
+        "k": "Computers",
+        "v": "Log in with [[login method|your library card number and PIN]], or ask for a guest pass."
+      },
+      {
+        "k": "Time",
+        "v": "Sessions last [[computer session length|2 hours]] and can be extended if no one’s waiting."
+      },
+      {
+        "k": "Your files",
+        "v": "Everything is erased when you log out.[[confirm computers wipe on logout|]] Save to email or a USB drive."
+      }
+    ]
+  }
 }

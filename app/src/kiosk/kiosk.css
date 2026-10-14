@@ -388,3 +388,60 @@ html,body{margin:0;height:100%}
 /* Keep the screen views' z-index contained so overlays always sit on top. */
 .main{z-index:0}
 .scrim{z-index:1}.sheet{z-index:2}.idle{z-index:5}
+
+/* ---- Landing: vibrant navy + gold ---- */
+.kiosk{--navy:#0A2472;--navy-deep:#061A55;--navy-glow:#2D5BFF;--gold:#FFC72C;--gold-deep:#E8A800}
+.attract{background:radial-gradient(120% 80% at 0% 0%,#123A9E 0%,transparent 60%),linear-gradient(165deg,var(--navy) 0%,var(--navy-deep) 100%);color:#FFFFFF}
+.att-top{color:var(--gold)}
+.att-ics{color:var(--gold);gap:.7em}
+.att-ics svg{width:2.2em;height:2.2em}
+.att-title{max-width:8.5em}
+.att-sub{color:#D3DCF7;max-width:20em;line-height:1.35}
+.att-tap{background:var(--gold);color:var(--navy-deep);box-shadow:0 10px 30px -10px rgba(255,199,44,.55)}
+.att-foot{color:#B9C5EC}
+.att-bg i:nth-child(1){background:var(--navy-glow);opacity:.55}
+.att-bg i:nth-child(2){background:#3B6BFF;opacity:.3}
+.att-bg i:nth-child(3){background:var(--gold);opacity:.18}
+.hc .attract{background:#000}
+.hc .att-tap{background:#FFF200;color:#000;box-shadow:none}
+/* The session header picks up the same navy so the two feel related. */
+.kiosk:not(.hc) .hdr{background:var(--navy);border-bottom:3px solid var(--gold)}
+
+/* Print trouble, tucked inside the printing path */
+.trouble{display:flex;flex-direction:column;gap:.35em;padding-top:.5em;border-top:1px dashed var(--line)}
+.trouble .choice{background:var(--sunk)}
+@media (prefers-reduced-motion: no-preference){
+  .att-ics>span:nth-child(3){animation-delay:-1.2s}
+  .att-ics>span:nth-child(4){animation-delay:-3.7s}
+  .view .trouble{animation:rise .44s .3s var(--ease-out) backwards}
+}
+.kiosk:has(>.attract){background:var(--navy-deep)}
+
+/* ---- Landing v3: flat navy, CPL mark pattern ---- */
+.attract{background:var(--navy)}
+.att-bg{color:#FFFFFF;opacity:.055;
+  -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 45%,transparent 92%);mask-image:linear-gradient(to bottom,#000 0%,#000 45%,transparent 92%)}
+.att-bg i{display:none}
+.att-pattern{position:absolute;top:-260px;left:-260px;width:calc(100% + 520px);height:calc(100% + 520px)}
+.att-top{display:flex;align-items:center;gap:.7em;font-size:.8em;letter-spacing:0;text-transform:none;color:#FFFFFF}
+.att-top>span{display:flex;flex-direction:column;line-height:1.15}
+.att-top b{font-size:1.15em;letter-spacing:-.01em}
+.att-top b+span{font-size:.78em;color:#B9C5EC;font-weight:500}
+.att-logo{width:2.4em;height:2.4em;color:var(--gold);flex:none}
+.att-ics{color:var(--gold);opacity:.95}
+.att-title{font-size:3.6em;letter-spacing:-.03em}
+.att-tap{box-shadow:none;border-radius:8px}
+.hc .att-bg{display:none}
+.hc .att-logo{color:#FFF200}
+@media (prefers-reduced-motion: no-preference){
+  .att-pattern{animation:patternDrift 90s linear infinite}
+  @keyframes patternDrift{to{transform:translate3d(260px,260px,0)}}
+  .att-logo{animation:logoIn .9s var(--ease-out) backwards}
+  @keyframes logoIn{from{opacity:0;transform:rotate(-45deg) scale(.8)}}
+}
+/* Keep the gold crisp: no opacity pulse; the arrow nudges instead. */
+@media (prefers-reduced-motion: no-preference){
+  .att-tap{animation:none}
+  .att-tap svg{animation:nudge 2.6s var(--ease-out) infinite}
+  @keyframes nudge{0%,60%,100%{transform:none}30%{transform:translateX(.25em)}}
+}

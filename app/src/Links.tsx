@@ -11,15 +11,15 @@ export default function Links() {
     <div style={{ fontFamily: "'Work Sans', sans-serif", color: '#002A5C', background: '#FBFAF6', minHeight: '100vh', padding: '32px 20px', lineHeight: 1.6 }}>
       <div style={{ maxWidth: 760, margin: '0 auto' }}>
         <p style={{ fontSize: 12, fontWeight: 600, letterSpacing: '.12em', textTransform: 'uppercase', color: '#0057B7', margin: 0 }}>Clickable prototype · no backend</p>
-        <h1 style={{ margin: '4px 0 8px', fontSize: 34, lineHeight: 1.1 }}>TechCentral concierge kiosk</h1>
+        <h1 style={{ margin: '4px 0 8px', fontSize: 34, lineHeight: 1.1 }}>TechCentral guide kiosk</h1>
         <p style={{ margin: '0 0 20px', color: '#505A69' }}>
           Facts marked with a <span style={{ textDecoration: 'underline dotted #B39A00', textDecorationThickness: 2, textUnderlineOffset: '.18em' }}>dotted underline</span> are made-up sample values standing in for unverified <code>[[placeholders]]</code>. Hover one to see what staff need to confirm. Add <code>?ph=tags</code> to any page to show them as <code>[PLACEHOLDER: …]</code> tags instead.
         </p>
 
         <h2 style={{ fontSize: 20, marginBottom: 4 }}>Kiosk</h2>
         <ul>
-          <L href="/" note="orientation follows the window">Kiosk (auto orientation)</L>
-          <L href="/?orient=portrait">Portrait 1080 × 1920</L>
+          <L href="/" note="portrait 1080 × 1920, centered in any window">Kiosk</L>
+          <L href="/?orient=auto" note="follows the window’s shape">Auto orientation</L>
           <L href="/?orient=landscape">Landscape 1920 × 1080</L>
           <L href="/?printer=0" note="hides “Print it” on the takeaway screen">No-printer mode</L>
           <L href="/?ph=tags" note="the design's placeholder tags">Placeholders as tags</L>
@@ -44,8 +44,9 @@ export default function Links() {
 
         <h2 style={{ fontSize: 20, marginBottom: 4 }}>Try these in the kiosk</h2>
         <ul>
-          <li>Home → I need to print something → On a USB drive → Ask about this plan → “How much will this cost?” → Based on… → Take this with you</li>
-          <li>Home → I want to 3D print → Let’s start → Run it yourself → step 4 → “Strange smell, smoke, or noise” (fixed safety message)</li>
+          <li>Home → Print something → On a USB drive → Ask about this plan → “How much will this cost?” → Based on… → Take this with you</li>
+          <li>Print something → My print didn’t come out → pick a fix</li>
+          <li>Home → 3D print something → Let’s start → Run it yourself → step 4 → “Strange smell, smoke, or noise” (fixed safety message)</li>
           <li>Ask → Type a question instead → type “it smells like smoke” (safety), “can I renew books” (off-topic), “print on vinyl” (not in guide)</li>
           <li>Accessibility → Larger text, High contrast, Read aloud</li>
           <li>Leave it alone for 50 s → “Still there?” → full reset</li>
