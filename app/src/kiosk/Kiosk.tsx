@@ -59,12 +59,22 @@ function useViewport() {
 
 const Chev = () => <Icon n="chev" className="chev" />;
 
-function Choice({ icon, label, sub, onClick, big, pressed, style }: { icon?: IconName; label: React.ReactNode; sub?: React.ReactNode; onClick: () => void; big?: boolean; pressed?: boolean; style?: React.CSSProperties }) {
+function Choice({ icon, label, sub, onClick, big }: { icon?: IconName; label: React.ReactNode; sub?: React.ReactNode; onClick: () => void; big?: boolean }) {
   return (
-    <button className={'choice' + (big ? ' big' : '')} onClick={onClick} aria-pressed={pressed} style={style}>
-      {icon && <span className="cic"><Icon n={icon} w={1.75} /></span>}
-      <span className="ctx"><span className="cl" style={big ? undefined : { fontSize: '.98em' }}>{label}</span>{sub && <span className="cs">{sub}</span>}</span>
+    <button className={'choice' + (big ? ' big' : '')} onClick={onClick}>
+      {icon && <span className="cic"><Icon n={icon} /></span>}
+      <span className="ctx"><span className="cl">{label}</span>{sub && <span className="cs">{sub}</span>}</span>
       <Chev />
+    </button>
+  );
+}
+
+/** The design system's radio-card: the canonical pick-one pattern. */
+function Option({ label, checked, onClick }: { label: React.ReactNode; checked: boolean; onClick: () => void }) {
+  return (
+    <button className={'opt' + (checked ? ' is-active' : '')} role="radio" aria-checked={checked} onClick={onClick}>
+      <span className="opt-dot" aria-hidden="true" />
+      <span className="cl">{label}</span>
     </button>
   );
 }
@@ -73,10 +83,10 @@ function Src({ k, policy }: { k: string; policy?: boolean }) {
   return <p className="src">From TechCentral{policy ? ' 3D printing policy' : ''} · checked <T s={checkedFor(k)} /></p>;
 }
 
-function Slot({ alt, kind = 'Screenshot or photo slot', style }: { alt: string; kind?: string; style?: React.CSSProperties }) {
+function Slot({ alt, kind = 'Screenshot or photo slot', wide }: { alt: string; kind?: string; wide?: boolean }) {
   return (
-    <div className="islot" role="img" aria-label={alt} style={style}>
-      <Icon n="image" w={1.5} />
+    <div className={'islot' + (wide ? ' wide' : '')} role="img" aria-label={alt}>
+      <Icon n="image" />
       <span>{kind} · alt: “{alt}”</span>
     </div>
   );
@@ -89,8 +99,8 @@ function SafetyBox() {
     <div className="ansbox safety" role="alert">
       <span className="rhead"><Icon n="warn" />Safety</span>
       <p className="ans">{ASSIST.safety}</p>
-      <p className="tb" style={{ color: 'inherit' }}><Staff /></p>
-      <p className="ailabel" style={{ color: 'inherit' }}>{ASSIST.safetyFoot}</p>
+      <p className="tb"><Staff /></p>
+      <p className="ailabel">{ASSIST.safetyFoot}</p>
     </div>
   );
 }
@@ -111,8 +121,7 @@ function PrintStatus({ href }: { href: string }) {
   if (!done) return <span className="ok sending" role="status"><span className="pbar" aria-hidden="true"><i /></span>Sending to the printer…</span>;
   return (
     <>
-      <span className="ok fadeup" role="status"><Icon n="check" w={2.5} className="pop" /><span>Printing now. Take it <T s={SITE.slipWhere} />.</span></span>
-      <ProtoLink href={href}>Prototype: see the slip</ProtoLink>
+      <span className="ok fadeup" role="status"><Icon n="check" className="pop" /><span>Printing now. Take it <T s={SITE.slipWhere} />. <ProtoLink href={href}>Prototype: see the slip</ProtoLink></span></span>
     </>
   );
 }
@@ -332,15 +341,15 @@ export default function Kiosk() {
           </div>
           <div className="act">
             <dl className="rules">
-              {SITE.computers.facts.map((f) => <div className="rule" key={f.k}><dt className="rk">{f.k}</dt><dd style={{ margin: 0 }}><T s={f.v} /></dd></div>)}
+              {SITE.computers.facts.map((f) => <div className="rule" key={f.k}><dt className="rk">{f.k}</dt><dd><T s={f.v} /></dd></div>)}
             </dl>
-            <div className="card" style={{ alignItems: 'center' }}>
-              <span className="cic"><Icon n="user" w={1.75} /></span>
-              <div className="cbody"><span className="th" style={{ fontSize: '.9em' }}>Staff can set you up.</span><span className="tb"><Staff /></span></div>
+            <div className="card center">
+              <span className="cic"><Icon n="user" /></span>
+              <div className="cbody"><span className="th">Staff can set you up.</span><span className="tb"><Staff /></span></div>
             </div>
-            <div className="cta">
-              <button className="btn btn-p" onClick={() => go({ screen: 'p0' })}><Icon n="printer" />I need to print, too</button>
+            <div className="cta row2">
               <button className="btn btn-s" onClick={() => openOv('staff')}>Where staff are</button>
+              <button className="btn btn-p" onClick={() => go({ screen: 'p0' })}><Icon n="printer" />I need to print, too</button>
             </div>
             <Src k="site" />
           </div>
@@ -384,19 +393,19 @@ export default function Kiosk() {
               {plan.steps.map((st, i) => (
                 <li key={i}>
                   <button className={'step' + (s.seen.includes(s.plan + ':' + i) ? ' seen' : '')} onClick={() => go({ screen: 'step', step: i })}>
-                    <span className="sn" aria-label={`Step ${i + 1}` + (s.seen.includes(s.plan + ':' + i) ? ', viewed' : '')}>{s.seen.includes(s.plan + ':' + i) ? <Icon n="check" w={3} /> : i + 1}</span>
+                    <span className="sn" aria-label={`Step ${i + 1}` + (s.seen.includes(s.plan + ':' + i) ? ', viewed' : '')}>{s.seen.includes(s.plan + ':' + i) ? <Icon n="check" /> : i + 1}</span>
                     <span className="st"><T s={st.text} /></span>
                     {st.fail
-                      ? <span className="simg" aria-hidden="true"><Icon n="warn" w={1.75} /></span>
-                      : <span className="simg" role="img" aria-label={'Image slot: ' + plain(st.alt || st.text)}><Icon n="image" w={1.75} /></span>}
+                      ? <span className="simg" aria-hidden="true"><Icon n="warn" /></span>
+                      : <span className="simg" role="img" aria-label={'Image slot: ' + plain(st.alt || st.text)}><Icon n="image" /></span>}
                     <Chev />
                   </button>
                 </li>
               ))}
             </ol>
-            <div className="cta">
-              <button className="btn btn-p" onClick={() => go({ screen: 'take', takeFrom: 'plan' })}>Take this with you</button>
+            <div className="cta row2">
               <button className="btn btn-s" onClick={() => openAsk(plan.ctx)}><Icon n="chat" />Ask about this plan</button>
+              <button className="btn btn-p" onClick={() => go({ screen: 'take', takeFrom: 'plan' })}>Take this with you<Icon n="right" /></button>
             </div>
             {plan.ctx === 'print' && <button className="link" onClick={() => go({ screen: 'px' })}>Already printed and it didn’t come out?</button>}
             <Src k={s.plan} />
@@ -411,7 +420,7 @@ export default function Kiosk() {
           <section className="scr">
             <div className="info">
               <span className="eyebrow">Step {stepN + 1} of {plan.steps.length} · {plan.title}</span>
-              <h1 className="title" style={{ fontSize: '1.6em' }} tabIndex={-1}><T s={cur.text} /></h1>
+              <h1 className="title t2" tabIndex={-1}><T s={cur.text} /></h1>
               <p className="lead"><T s={cur.detail} /></p>
             </div>
             <div className="act">
@@ -429,12 +438,8 @@ export default function Kiosk() {
               )}
               {cur.fail && (
                 <>
-                  <div className="choices">
-                    {FAILS.map((f) => (
-                      <Choice key={f.id} label={<span style={{ fontSize: '.95em' }}>{f.label}</span>} pressed={s.fail === f.id}
-                        style={s.fail === f.id ? { borderColor: 'var(--brand)', borderWidth: 3 } : undefined}
-                        onClick={() => set({ fail: f.id })} />
-                    ))}
+                  <div className="choices" role="radiogroup" aria-label="What do you see?">
+                    {FAILS.map((f) => <Option key={f.id} label={f.label} checked={s.fail === f.id} onClick={() => set({ fail: f.id })} />)}
                   </div>
                   {failPick?.safety && <div className="fadeup" key="safety"><SafetyBox /></div>}
                   {failPick && !failPick.safety && (
@@ -476,7 +481,7 @@ export default function Kiosk() {
               <div className="takes">
                 {config.hasPrinter && (
                   <div className="card">
-                    <span className="cic"><Icon n="printer" w={1.75} /></span>
+                    <span className="cic"><Icon n="printer" /></span>
                     <div className="cbody">
                       <span className="th">Print it</span>
                       <span className="tb">A slip with your plan, the short link, and where staff are. <T s={SITE.slipFree} /></span>
@@ -496,7 +501,7 @@ export default function Kiosk() {
                   </div>
                 </div>
                 <div className="card">
-                  <span className="cic"><Icon n="user" w={1.75} /></span>
+                  <span className="cic"><Icon n="user" /></span>
                   <div className="cbody">
                     <span className="th">Show staff</span>
                     <span className="tb">Tell staff at the desk:</span>
@@ -512,10 +517,10 @@ export default function Kiosk() {
                 </div>
               )}
               <div className="cta">
-                <p className="th" style={{ textAlign: 'center' }}>You’re all set.</p>
+                <p className="th done-note">You’re all set.</p>
                 <div className="row2">
                   <button className="btn btn-s" onClick={() => set({ screen: 'home', hist: [], took: false, ov: '', dir: 'back' })}>Something else</button>
-                  <button className="btn btn-p" onClick={reset}><Icon n="check" w={2.5} />Done</button>
+                  <button className="btn btn-p" onClick={reset}><Icon n="check" />Done</button>
                 </div>
               </div>
               <Src k={fromFix ? 'fix' : s.plan} />
@@ -544,7 +549,7 @@ export default function Kiosk() {
         <section className="scr">
           <div className="info">
             <span className="eyebrow">{fix.label}</span>
-            <h1 className="title" style={{ fontSize: '1.65em' }} tabIndex={-1}>{fix.title}</h1>
+            <h1 className="title t2" tabIndex={-1}>{fix.title}</h1>
             <p className="lead"><b>Likely cause:</b> <T s={fix.cause} /></p>
           </div>
           <div className="act">
@@ -554,14 +559,14 @@ export default function Kiosk() {
             <div className="card">
               <Qr className="qr sm" path={pathOf(fix.url)} label={'QR code for ' + fix.url} />
               <div className="cbody">
-                <span className="th" style={{ fontSize: '.9em' }}>Scan to your phone</span>
-                <span className="url" style={{ fontSize: '.9em' }}><a href={pathOf(fix.url)} target="_blank" rel="noreferrer">{fix.url}</a> <T s={SITE.shortUrlNote} /></span>
+                <span className="th">Scan to your phone</span>
+                <span className="url"><a href={pathOf(fix.url)} target="_blank" rel="noreferrer">{fix.url}</a> <T s={SITE.shortUrlNote} /></span>
                 <span className="tb">Take these steps back to the computer or printer.</span>
               </div>
             </div>
-            <div className="card" style={{ alignItems: 'center' }}>
-              <span className="cic"><Icon n="user" w={1.75} /></span>
-              <div className="cbody"><span className="th" style={{ fontSize: '.9em' }}>Still stuck? Staff can sort this out.</span><span className="tb"><Staff /></span></div>
+            <div className="card center">
+              <span className="cic"><Icon n="user" /></span>
+              <div className="cbody"><span className="th">Still stuck? Staff can sort this out.</span><span className="tb"><Staff /></span></div>
             </div>
             <div className="cta">
               <div className="row2">
@@ -601,12 +606,12 @@ export default function Kiosk() {
           <div className="act">
             <div className="gal">
               {THREED.gallery.map((g) => (
-                <div className="gslot" role="img" aria-label={'Photo slot: ' + plain(g)} key={g}><Icon n="image" w={1.5} /><span><T s={g} /></span></div>
+                <div className="gslot" role="img" aria-label={'Photo slot: ' + plain(g)} key={g}><Icon n="image" /><span><T s={g} /></span></div>
               ))}
             </div>
-            <div className="cta">
-              <button className="btn btn-p" onClick={() => go({ screen: 'm1' })}>Let’s start</button>
+            <div className="cta row2">
               <button className="btn btn-s" onClick={() => go({ screen: 'rules' })}><Icon n="book" />See the rules first</button>
+              <button className="btn btn-p" onClick={() => go({ screen: 'm1' })}>Let’s start<Icon n="right" /></button>
             </div>
             <Src k="m0" />
           </div>
@@ -675,10 +680,10 @@ export default function Kiosk() {
           </div>
           <div className="act">
             <dl className="rules">
-              {THREED.rules.map((r) => <div className="rule" key={r.k}><dt className="rk">{r.k}</dt><dd style={{ margin: 0 }}><T s={r.v} /></dd></div>)}
+              {THREED.rules.map((r) => <div className="rule" key={r.k}><dt className="rk">{r.k}</dt><dd><T s={r.v} /></dd></div>)}
             </dl>
             <button className="link" onClick={() => set({ rulesOpen: !s.rulesOpen })} aria-expanded={s.rulesOpen}>{s.rulesOpen ? 'Hide the official policy' : 'Read the official policy'}</button>
-            {s.rulesOpen && <div className="policy">{THREED.policy.map((p, i) => <p key={i} style={{ marginBottom: '.6em' }}><T s={p} /></p>)}</div>}
+            {s.rulesOpen && <div className="policy">{THREED.policy.map((p, i) => <p key={i}><T s={p} /></p>)}</div>}
             <div className="cta"><button className="btn btn-p" onClick={() => go({ screen: 'm1' })}>Let’s start</button></div>
             <Src k="rules" policy />
           </div>
@@ -734,9 +739,9 @@ export default function Kiosk() {
   const assistant = (
     <section className={'sheet' + out} role="dialog" aria-modal="true" aria-labelledby="ask-t">
       <div className="sh-h">
-        <Icon n="chat" style={{ width: '1.2em', height: '1.2em', color: 'var(--brand)' }} />
+        <Icon n="chat" className="sh-ic" />
         <span className="sh-t" id="ask-t">Ask about this</span>
-        <button className="xbtn" onClick={closeOv}><Icon n="x" w={2.5} />Close</button>
+        <button className="xbtn" onClick={closeOv}><Icon n="x" />Close</button>
       </div>
       <div className="sh-b">
         <span className="ctxchip">{ctxChip}</span>
@@ -768,7 +773,7 @@ export default function Kiosk() {
               ))}
               <div className="krow">
                 <button className="key wide" onClick={() => set((p) => ({ typed: p.typed + ' ' }))}>Space</button>
-                <button className="key wide" style={{ flex: 1.4 }} onClick={() => set((p) => ({ typed: p.typed.slice(0, -1) }))} aria-label="Delete last letter">Delete</button>
+                <button className="key wide del" onClick={() => set((p) => ({ typed: p.typed.slice(0, -1) }))} aria-label="Delete last letter">Delete</button>
                 <button className="key go" onClick={askTyped} disabled={!s.typed.trim()}>Ask</button>
               </div>
             </div>
@@ -790,8 +795,8 @@ export default function Kiosk() {
                 {a.based && <button className="based" onClick={() => jump(a)}><Icon n="book" />Based on: {a.based}</button>}
                 <p className="ailabel">AI answer · from TechCentral’s guide · checked <T s={ASSIST.checkedDate} /></p>
                 <div className="tools">
-                  <button className={'tbtn' + (s.vote === 'up' ? ' on' : '')} aria-pressed={s.vote === 'up'} aria-label="Helpful" onClick={() => set({ vote: s.vote === 'up' ? '' : 'up' })}><Icon n="up" /></button>
-                  <button className={'tbtn' + (s.vote === 'down' ? ' on' : '')} aria-pressed={s.vote === 'down'} aria-label="Not helpful" onClick={() => set({ vote: s.vote === 'down' ? '' : 'down' })}><Icon n="down" /></button>
+                  <button className={'tbtn' + (s.vote === 'up' ? ' on' : '')} aria-pressed={s.vote === 'up'} onClick={() => set({ vote: s.vote === 'up' ? '' : 'up' })}><Icon n="up" />Helpful</button>
+                  <button className={'tbtn' + (s.vote === 'down' ? ' on' : '')} aria-pressed={s.vote === 'down'} onClick={() => set({ vote: s.vote === 'down' ? '' : 'down' })}><Icon n="down" />Not helpful</button>
                   <button className={'tbtn' + (added ? ' on' : '')} aria-pressed={added}
                     onClick={() => set((p) => ({ added: p.added.includes(a.q) ? p.added.filter((x) => x !== a.q) : [...p.added, a.q] }))}>
                     {added ? <><Icon n="check" />Added to my plan</> : 'Add to my plan'}
@@ -805,8 +810,8 @@ export default function Kiosk() {
                 <span className="rhead"><Icon n="user" />{ASSIST.heads[a.kind]}</span>
                 <p className="ans"><T s={a.text} /></p>
                 <div className="tools">
-                  <button className="btn btn-p" style={{ minHeight: '2.2em', fontSize: '.8em' }} onClick={() => openOv('staff')}>Where staff are</button>
-                  {a.rules && <button className="btn btn-s" style={{ minHeight: '2.2em', fontSize: '.8em' }} onClick={() => go({ screen: 'rules' })}>See the rules</button>}
+                  {a.rules && <button className="btn btn-s" onClick={() => go({ screen: 'rules' })}>See the rules</button>}
+                  <button className="btn btn-p" onClick={() => openOv('staff')}>Where staff are</button>
                 </div>
                 <p className="ailabel">{ASSIST.foots[a.kind]}</p>
               </div>
@@ -828,7 +833,7 @@ export default function Kiosk() {
   );
   const a11y = (
     <section className={'sheet short' + out} role="dialog" aria-modal="true" aria-labelledby="a11y-t">
-      <div className="sh-h"><span className="aa" aria-hidden="true">Aa</span><span className="sh-t" id="a11y-t">Accessibility options</span><button className="xbtn" onClick={closeOv}><Icon n="x" w={2.5} />Close</button></div>
+      <div className="sh-h"><span className="aa" aria-hidden="true">Aa</span><span className="sh-t" id="a11y-t">Accessibility options</span><button className="xbtn" onClick={closeOv}><Icon n="x" />Close</button></div>
       <div className="sh-b">
         {toggle('lg', 'Larger text', 'Makes everything on screen bigger.')}
         {toggle('hc', 'High contrast', 'White and yellow on black.')}
@@ -840,10 +845,10 @@ export default function Kiosk() {
 
   const staff = (
     <section className={'sheet short' + out} role="dialog" aria-modal="true" aria-labelledby="staff-t">
-      <div className="sh-h"><Icon n="user" style={{ width: '1.2em', height: '1.2em', color: 'var(--brand)' }} /><span className="sh-t" id="staff-t">Staff can help</span><button className="xbtn" onClick={closeOv}><Icon n="x" w={2.5} />Close</button></div>
+      <div className="sh-h"><Icon n="user" className="sh-ic" /><span className="sh-t" id="staff-t">Staff can help</span><button className="xbtn" onClick={closeOv}><Icon n="x" />Close</button></div>
       <div className="sh-b">
-        <p className="th" style={{ fontSize: '1.3em' }}><Staff /></p>
-        <Slot kind="Image slot" alt="The TechCentral desk, seen from this kiosk." style={{ aspectRatio: '21/9' }} />
+        <p className="th big"><Staff /></p>
+        <Slot kind="Image slot" alt="The TechCentral desk, seen from this kiosk." wide />
         <p className="lead"><T s={SITE.hours} /></p>
         <p className="lead">Walk over, or show them this screen. No need to explain everything — they’ll ask.</p>
       </div>
@@ -862,7 +867,7 @@ export default function Kiosk() {
 
   return (
     <div className={'kv' + (config.fit ? '' : ' native')}>
-      <div ref={rootRef} className={cls} lang="en"
+      <div ref={rootRef} className={cls} lang="en" data-mode="service"
         style={{ width: W, height: H, transform: config.fit ? `scale(${scale})` : undefined, left, top }}
         onPointerDownCapture={() => { last.current = Date.now(); }} onKeyDownCapture={onKeyDownCapture}>
 
@@ -871,10 +876,10 @@ export default function Kiosk() {
             <span className="att-bg" aria-hidden="true"><CplMark className="att-hero" /></span>
             <span className="att-top"><CplMark className="att-logo" /><span><b>TechCentral</b><span>Cleveland Public Library</span></span></span>
             <span className="att-mid">
-              <span className="att-ics">
-                <span><Icon n="printer" w={1.5} /></span><span><Icon n="cube" w={1.5} /></span><span><Icon n="wifi" w={1.5} /></span><span><Icon n="spark" w={1.5} /></span>
+              <span className="att-ics" aria-hidden="true">
+                <span><Icon n="printer" /></span><span><Icon n="cube" /></span><span><Icon n="wifi" /></span><span><Icon n="spark" /></span>
               </span>
-              <span className="att-title">Your guide to TechCentral</span>
+              <span className="att-title">Your guide to <em className="accent-phrase">TechCentral</em></span>
               <span className="att-sub">Print, 3D print, get online, or make something new. Tell us what you’re working on, and we’ll map out your visit.</span>
             </span>
             <span className="att-low">
@@ -922,7 +927,7 @@ export default function Kiosk() {
         {s.ov === 'idle' && (
           <div className="idle" role="alertdialog" aria-modal="true" aria-labelledby="idle-t" aria-describedby="idle-d">
             <div className="idle-card">
-              <p className="title" style={{ fontSize: '1.8em' }} id="idle-t">Still there?</p>
+              <p className="title" id="idle-t">Still there?</p>
               <p className="lead" id="idle-d">We’ll start over for the next person in</p>
               <div className="ring">
                 <svg viewBox="0 0 100 100" aria-hidden="true">
@@ -932,7 +937,7 @@ export default function Kiosk() {
                 <p className="count" aria-live="polite" key={s.count}>{s.count}</p>
               </div>
               <p className="lead">seconds. Everything you chose will be erased.</p>
-              <button className="btn btn-p" style={{ minHeight: '3.2em', fontSize: '1.15em' }} onClick={() => set((p) => ({ ov: p.prevOv, count: config.countdown }))}>I’m still here</button>
+              <button className="btn btn-p" onClick={() => set((p) => ({ ov: p.prevOv, count: config.countdown }))}>I’m still here</button>
               <button className="btn btn-s" onClick={reset}>Start over now</button>
             </div>
           </div>

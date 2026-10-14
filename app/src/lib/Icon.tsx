@@ -26,9 +26,10 @@ const P = {
 };
 export type IconName = keyof typeof P;
 
-export function Icon({ n, w = 2, className, style }: { n: IconName; w?: number; className?: string; style?: React.CSSProperties }) {
+/** Line icons, 1.5px stroke, no fills (CPL design system). */
+export function Icon({ n, className, style }: { n: IconName; className?: string; style?: React.CSSProperties }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={w} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={className} style={style}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={className} style={style}>
       {P[n]}
     </svg>
   );
