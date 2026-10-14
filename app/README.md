@@ -23,8 +23,8 @@ npm run placeholders   # list every unverified [[...]] fact still in the content
 
 ## Flags
 
-Defaults live in `src/config.ts` (`hasPrinter`, `orientation`, `placeholders`, timeouts). URL overrides:
-`?orient=portrait|landscape|auto` · `?printer=0` · `?ph=mock|tags|clean` · `?idle=10&countdown=8` · `?timers=off` · `?fit=0`
+Defaults live in `src/config.ts` (`hasPrinter`, `orientation`, `placeholders`, `largerText`, timeouts). URL overrides:
+`?orient=portrait|landscape|auto` · `?printer=0` · `?ph=mock|tags|clean` · `?lg=0` (start with larger text off) · `?idle=10&countdown=8` · `?timers=off` · `?fit=0`
 
 ## Content
 

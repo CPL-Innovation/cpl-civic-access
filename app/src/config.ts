@@ -9,6 +9,8 @@ const DEFAULTS = {
   orientation: 'portrait' as 'auto' | 'portrait' | 'landscape',
   /** How unverified [[...]] facts render: 'mock' = sample value, lightly marked; 'tags' = [PLACEHOLDER: …]; 'clean' = sample value, unmarked. */
   placeholders: 'mock' as 'mock' | 'tags' | 'clean',
+  /** Larger text starts on for every session (and comes back on after a reset). */
+  largerText: true,
   idleSeconds: 50,
   countdownSeconds: 15,
 };
@@ -22,6 +24,8 @@ export const config = {
   placeholders: pick(q.get('ph'), ['mock', 'tags', 'clean'] as const, DEFAULTS.placeholders),
   idleMs: (Number(q.get('idle')) || DEFAULTS.idleSeconds) * 1000,
   countdown: Number(q.get('countdown')) || DEFAULTS.countdownSeconds,
+  /** ?lg=0 starts with larger text off. */
+  largerText: q.has('lg') ? q.get('lg') !== '0' : DEFAULTS.largerText,
   /** ?timers=off stops the idle timeout (handy while reviewing). */
   timers: q.get('timers') !== 'off',
   /** ?fit=0 renders at native 1080×1920 / 1920×1080 instead of scaling to the window. */
