@@ -1,0 +1,156 @@
+{
+  "_readme": "Paper printing plans, one per file source. `idx` maps assistant answers (\"print\", \"pay\") to the step they're based on (0 = first step).",
+  "checkedDate": "[[date this file was checked|Oct 1, 2026]]",
+  "sourceNote": "Here, phone files print by email first. [[supported phone sources|Works with any phone that has email.]]",
+  "plans": {
+    "usb": {
+      "eyebrow": "Your printing plan",
+      "title": "Print from your USB drive",
+      "chip": "Printing plan · File on USB",
+      "ctx": "print",
+      "url": "cpl.org/tc/usb",
+      "say": "“I’m printing a file from my USB drive.”",
+      "idx": { "print": 1, "pay": 3 },
+      "facts": [
+        { "k": "Cost", "v": "B&W [[B&W price per page|10¢]] a page · color [[color price per page|25¢]] a page" },
+        { "k": "Your job waits", "v": "[[how long jobs are held|2 hours]]" },
+        { "k": "Bring", "v": "Your USB drive, plus a library card or guest pass" }
+      ],
+      "steps": [
+        {
+          "text": "Sit at any patron computer and log in with [[login method|your library card number and PIN]].",
+          "detail": "Any computer marked “Patron computer” works. Type the number on the back of your library card, or the guest pass number from the desk [[guest pass rule|— guest passes are free with a photo ID]]. Then plug your USB drive into the computer [[USB port location|on the front of the tower]].",
+          "alt": "A patron computer’s login screen, with the card-number box highlighted."
+        },
+        {
+          "text": "Open your file and choose Print → [[printer name|TC-Print]].",
+          "detail": "Choose File, then Print. In the printer list, pick [[B&W printer name|TC-BW]] for black and white or [[color printer name|TC-Color]] for color. Check the page count before you press Print.",
+          "alt": "The print window, with the printer list open and the TechCentral printer selected."
+        },
+        {
+          "text": "Go to the release station [[release station location|by the windows, next to the printers]].",
+          "detail": "Your job waits there, not at the printer. Look for the touchscreen next to the printers.",
+          "alt": "The release station: the screen to the right of the printers."
+        },
+        {
+          "text": "Find your job, pay [[B&W / color per page|10¢ or 25¢ a page]], and print.",
+          "detail": "Log in with the same card or guest pass you used at the computer. Tap your job, check the page count and price, then tap Print. Pay with [[accepted payment|cash, coins, or a debit or credit card]].",
+          "alt": "The release station screen showing one waiting job and its price."
+        }
+      ]
+    },
+    "phone": {
+      "eyebrow": "Your printing plan",
+      "title": "Print a file from your phone",
+      "chip": "Printing plan · File on phone",
+      "ctx": "print",
+      "url": "cpl.org/tc/phone",
+      "say": "“I want to print a file that’s on my phone.”",
+      "idx": { "print": 2, "pay": 3 },
+      "facts": [
+        { "k": "Cost", "v": "B&W [[B&W price per page|10¢]] a page · color [[color price per page|25¢]] a page" },
+        { "k": "Your job waits", "v": "[[how long jobs are held|2 hours]]" },
+        { "k": "Bring", "v": "Your phone, plus a library card or guest pass" }
+      ],
+      "steps": [
+        {
+          "text": "Email the file to yourself from your phone.",
+          "detail": "Open the file on your phone, tap Share, and send it to your own email. [[direct phone printing, if TechCentral offers it|Direct phone printing isn’t set up here yet, so email is the way.]]",
+          "alt": "A phone’s share menu with Email selected."
+        },
+        {
+          "text": "Sit at any patron computer and log in with [[login method|your library card number and PIN]].",
+          "detail": "Any computer marked “Patron computer” works. Type the number on the back of your library card, or the guest pass number from the desk [[guest pass rule|— guest passes are free with a photo ID]].",
+          "alt": "A patron computer’s login screen, with the card-number box highlighted."
+        },
+        {
+          "text": "Open your email in the browser, download the file, and choose Print → [[printer name|TC-Print]].",
+          "detail": "Sign in to your email in the browser. Download the attachment, open it, then choose File, then Print. Sign out of your email when you’re done.",
+          "alt": "A web email inbox with the attachment’s download button highlighted."
+        },
+        {
+          "text": "Go to the release station [[release station location|by the windows, next to the printers]], pay [[B&W / color per page|10¢ or 25¢ a page]], and print.",
+          "detail": "Your job waits at the release station, not at the printer. Log in with the same card or guest pass, tap your job, check the price, and tap Print. Pay with [[accepted payment|cash, coins, or a debit or credit card]].",
+          "alt": "The release station: the screen to the right of the printers."
+        }
+      ]
+    },
+    "email": {
+      "eyebrow": "Your printing plan",
+      "title": "Print a file from your email",
+      "chip": "Printing plan · File in email",
+      "ctx": "print",
+      "url": "cpl.org/tc/email",
+      "say": "“I want to print a file from my email.”",
+      "idx": { "print": 2, "pay": 3 },
+      "facts": [
+        { "k": "Cost", "v": "B&W [[B&W price per page|10¢]] a page · color [[color price per page|25¢]] a page" },
+        { "k": "Your job waits", "v": "[[how long jobs are held|2 hours]]" },
+        { "k": "Bring", "v": "Your email password, plus a library card or guest pass" }
+      ],
+      "steps": [
+        {
+          "text": "Sit at any patron computer and log in with [[login method|your library card number and PIN]].",
+          "detail": "Any computer marked “Patron computer” works. Type the number on the back of your library card, or the guest pass number from the desk [[guest pass rule|— guest passes are free with a photo ID]].",
+          "alt": "A patron computer’s login screen, with the card-number box highlighted."
+        },
+        {
+          "text": "Open your email in the browser and download the attachment.",
+          "detail": "Sign in to your email in the browser. Open the message and download the file. Sign out when you’re done — this computer is shared.",
+          "alt": "A web email message with the attachment’s download button highlighted."
+        },
+        {
+          "text": "Open your file and choose Print → [[printer name|TC-Print]].",
+          "detail": "Choose File, then Print. In the printer list, pick [[B&W printer name|TC-BW]] for black and white or [[color printer name|TC-Color]] for color. Check the page count before you press Print.",
+          "alt": "The print window, with the printer list open and the TechCentral printer selected."
+        },
+        {
+          "text": "Go to the release station [[release station location|by the windows, next to the printers]], pay [[B&W / color per page|10¢ or 25¢ a page]], and print.",
+          "detail": "Your job waits at the release station, not at the printer. Log in with the same card or guest pass, tap your job, check the price, and tap Print. Pay with [[accepted payment|cash, coins, or a debit or credit card]].",
+          "alt": "The release station: the screen to the right of the printers."
+        }
+      ]
+    },
+    "make": {
+      "eyebrow": "Your printing plan",
+      "title": "Make it here, then print it",
+      "chip": "Printing plan · Make it here",
+      "ctx": "print",
+      "url": "cpl.org/tc/make",
+      "say": "“I need to make a document on a computer here and print it.”",
+      "idx": { "print": 3, "pay": 4 },
+      "facts": [
+        { "k": "Cost", "v": "B&W [[B&W price per page|10¢]] a page · color [[color price per page|25¢]] a page" },
+        { "k": "Your job waits", "v": "[[how long jobs are held|2 hours]]" },
+        { "k": "Bring", "v": "A library card or guest pass. A USB drive to keep a copy." }
+      ],
+      "steps": [
+        {
+          "text": "Sit at any patron computer and log in with [[login method|your library card number and PIN]].",
+          "detail": "Any computer marked “Patron computer” works. Type the number on the back of your library card, or the guest pass number from the desk [[guest pass rule|— guest passes are free with a photo ID]].",
+          "alt": "A patron computer’s login screen, with the card-number box highlighted."
+        },
+        {
+          "text": "Open [[word processor|Microsoft Word]] and make your document.",
+          "detail": "Find [[word processor|Microsoft Word]] on the desktop. Templates for résumés and letters are under File → New.[[confirm templates are installed|]]",
+          "alt": "The desktop, with the word processor icon highlighted."
+        },
+        {
+          "text": "Save a copy to your email or a USB drive.",
+          "detail": "Patron computers erase everything when you log out.[[confirm computers wipe on logout|]] Save a copy before you print so you don’t lose your work.",
+          "alt": "The Save As window."
+        },
+        {
+          "text": "Open your file and choose Print → [[printer name|TC-Print]].",
+          "detail": "Choose File, then Print. In the printer list, pick [[B&W printer name|TC-BW]] for black and white or [[color printer name|TC-Color]] for color. Check the page count before you press Print.",
+          "alt": "The print window, with the printer list open and the TechCentral printer selected."
+        },
+        {
+          "text": "Go to the release station [[release station location|by the windows, next to the printers]], pay [[B&W / color per page|10¢ or 25¢ a page]], and print.",
+          "detail": "Your job waits at the release station, not at the printer. Log in with the same card or guest pass, tap your job, check the price, and tap Print. Pay with [[accepted payment|cash, coins, or a debit or credit card]].",
+          "alt": "The release station: the screen to the right of the printers."
+        }
+      ]
+    }
+  }
+}

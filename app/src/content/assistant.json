@@ -1,0 +1,54 @@
+{
+  "_readme": "The assistant's stubbed answer source. `qa` holds the suggested questions per context (print, fix, m1, planA, planB). kind: answer | notin | judge | safety | off. `keywords` let the stub match typed questions. The safety message is fixed and never generated.",
+  "checkedDate": "[[date this file was checked|Oct 1, 2026]]",
+  "safety": "Stop the printer if it’s safe to, and tell staff right now.",
+  "safetyFoot": "Fixed safety message · always the same · not written by AI",
+  "notin": "I don’t have that in TechCentral’s guide, so I don’t want to guess. Staff at the desk can help — they’re [[desk direction, two or three words|to your left]].",
+  "off": "I can only help with printing and 3D printing here. For anything else, staff can point you the right way.",
+  "judgeGeneric": "I can point you to the rules, but whether that’s OK is a staff call. Show them at the desk.",
+  "heads": {
+    "notin": "Not in the guide",
+    "judge": "That’s a staff call",
+    "off": "Outside this kiosk"
+  },
+  "foots": {
+    "notin": "The assistant only answers from TechCentral’s guide.",
+    "judge": "The assistant can quote rules but never approves a print or rules on policy.",
+    "off": "This kiosk covers printing and 3D printing only."
+  },
+  "safetyWords": ["smell", "smoke", "smoking", "burn", "burning", "fire", "flame", "spark", "grinding", "noise", "melting", "hot to touch"],
+  "judgeWords": ["allowed", "approve", "permitted", "qualify", "refund", "is it ok", "can i print a", "let me", "exception"],
+  "offWords": ["renew", "stamps", "parking", "bathroom", "restroom", "passport", "taxes", "borrow", "hold", "dvd", "wifi password", "fine", "fines", "meeting room"],
+  "qa": {
+    "print": [
+      { "id": "p1", "q": "How much will this cost?", "kind": "answer", "keywords": ["cost", "price", "much", "pay", "money", "cents"], "a": "Black and white is [[B&W price per page|10¢]] a page and color is [[color price per page|25¢]] a page. You pay at the release station when you print.", "based": "Step: pay and print", "step": "pay" },
+      { "id": "p2", "q": "What if my file won’t open?", "kind": "answer", "keywords": ["open", "won't", "wont", "file", "format", "pdf"], "a": "Open [[word processor|Microsoft Word]] first, then use File → Open to find your file. If it still won’t open, staff can take a look.", "based": "Step: open your file and print", "step": "print" },
+      { "id": "p3", "q": "Can I print on cardstock?", "kind": "notin", "keywords": ["cardstock", "paper", "photo", "glossy"] },
+      { "id": "p4", "q": "Can I renew my books here?", "kind": "off", "keywords": ["renew", "books"] }
+    ],
+    "fix": [
+      { "id": "f1", "q": "How long does my job wait?", "kind": "answer", "keywords": ["long", "wait", "held", "cleared", "job"], "a": "Jobs wait at the release station for [[how long jobs are held|2 hours]]. After that they’re cleared, and you’ll need to print again.", "based": "Fix: job isn’t at the release station", "to": { "screen": "fx", "sym": "lost" } },
+      { "id": "f2", "q": "Can I get a refund for a misprint?", "kind": "judge", "keywords": ["refund", "misprint", "money back"], "a": "Here’s the rule: “[[misprint refund policy|Staff can credit pages a printer jam ruined.]]” Whether your print qualifies is a staff call. Show them the print at the desk." },
+      { "id": "f3", "q": "My print came out blank", "kind": "notin", "keywords": ["blank", "empty", "white"] },
+      { "id": "f4", "q": "Where can I buy stamps?", "kind": "off", "keywords": ["stamps", "mail"] }
+    ],
+    "m1": [
+      { "id": "m1", "q": "What does “checked out on the printers” mean?", "kind": "answer", "keywords": ["checked", "signed", "orientation", "mean", "qualified"], "a": "It means staff have watched you run a print and signed you off [[the actual qualification rule|— the 3D printing orientation plus one supervised print]]. Until then, staff print for you.", "based": "Run it yourself", "to": { "screen": "m1" } },
+      { "id": "m2", "q": "Can I run it myself today?", "kind": "judge", "keywords": ["myself", "today", "run it"], "a": "Here’s the rule: “[[qualification rule|You need the 3D printing orientation and one supervised print.]]” Whether you can run it yourself is a staff call. Ask at the desk." },
+      { "id": "m3", "q": "Can I print a cosplay prop?", "kind": "judge", "keywords": ["cosplay", "prop", "costume", "replica"], "a": "Here’s the rule: “[[prohibited items policy|No weapons or weapon parts, and no replicas that could be mistaken for the real thing.]]” Whether your print fits is a staff call. Show them your file at the desk.", "rules": true },
+      { "id": "m4", "q": "The printer smells like burning", "kind": "safety", "keywords": [] }
+    ],
+    "planA": [
+      { "id": "a1", "q": "How long will it take?", "kind": "answer", "keywords": ["long", "days", "ready", "when", "take"], "a": "Usually about [[turnaround|3 to 5 days]]. If you haven’t heard from us by then, ask at the desk.", "based": "Step 4: wait, then pick it up", "step": 3 },
+      { "id": "a2", "q": "What file types work?", "kind": "answer", "keywords": ["file", "types", "stl", "obj", "format"], "a": "We accept [[accepted file types|.STL, .OBJ, and .3MF files]]. Most free model sites let you download one of these.", "based": "Step 1: get a print-ready file", "step": 0 },
+      { "id": "a3", "q": "Will my model fit?", "kind": "judge", "keywords": ["fit", "size", "big", "large"], "a": "Here’s the rule: “[[size and time limits|Up to 5 × 5 × 5 inches, and under 6 hours to print.]]” Whether your model fits is a staff call. Show them your file at the desk.", "rules": true },
+      { "id": "a4", "q": "Can you print my design in metal?", "kind": "notin", "keywords": ["metal", "resin", "wood"] }
+    ],
+    "planB": [
+      { "id": "b1", "q": "How do I book a printer?", "kind": "answer", "keywords": ["book", "reserve", "booking", "schedule"], "a": "[[booking method|Book at cpl.org/tc/book or at the desk]]. Bookings last [[booking length|up to 3 hours]].", "based": "Step 2: book a printer", "step": 1 },
+      { "id": "b2", "q": "The printer is making a grinding noise", "kind": "safety", "keywords": [] },
+      { "id": "b3", "q": "Can I leave while it prints?", "kind": "answer", "keywords": ["leave", "away", "unattended", "lunch"], "a": "No. [[unattended printing policy|Staff stop prints left alone.]] If you need to step away, tell staff first.", "based": "Step 3: at the machine", "step": 2 },
+      { "id": "b4", "q": "Can I use my own filament?", "kind": "judge", "keywords": ["filament", "own", "material"], "a": "Here’s the rule: “[[materials policy|Only library filament is used on library printers.]]” Whether your filament can be used is a staff call. Ask at the desk." }
+    ]
+  }
+}

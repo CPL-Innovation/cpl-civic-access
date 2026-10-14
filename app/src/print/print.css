@@ -1,0 +1,19 @@
+/* Printable pages. On screen: the sheet on a gray desk with a toolbar. In print: just the sheet. */
+html,body{margin:0}
+body{background:#5b6472;font-family:'Work Sans',-apple-system,'Segoe UI',sans-serif}
+.pr-bar{position:sticky;top:0;z-index:2;display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 16px;background:#002A5C;color:#F7F4ED;font-size:14px}
+.pr-bar b{margin-right:auto}
+.pr-bar select,.pr-bar button,.pr-bar a{font:inherit;min-height:36px;padding:4px 12px;border-radius:6px;border:2px solid #F7F4ED;background:transparent;color:inherit;text-decoration:none;display:inline-flex;align-items:center}
+.pr-bar select option{color:#002A5C}
+.pr-bar button.p{background:#E9E186;color:#002A5C;border-color:#E9E186;font-weight:700}
+.pr-desk{display:flex;justify-content:center;padding:32px 16px 64px;overflow:auto}
+.pr-sheet{box-shadow:0 6px 24px rgba(0,0,0,.35);flex:none}
+.ph{background:#F3EFC2;color:#1A1A1A;font-weight:600;padding:0 .2em;border:1px dashed #555;border-radius:2px;font-size:.9em;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.mock{text-decoration:underline dotted #8a7a10;text-decoration-thickness:2px;text-underline-offset:.18em}
+@media print{
+  body{background:#fff}
+  .pr-bar{display:none}
+  .pr-desk{padding:0;display:block}
+  .pr-sheet{box-shadow:none;margin:0 auto}
+  .mock{text-decoration:none}
+}
