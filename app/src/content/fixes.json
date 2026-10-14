@@ -1,0 +1,81 @@
+{
+  "_readme": "“My print didn’t come out” fix cards, in the order they appear. Each has a phone page at its url.",
+  "checkedDate": "[[date this file was checked|Oct 1, 2026]]",
+  "allFixesUrl": "cpl.org/tc/fix",
+  "fixes": {
+    "lost": {
+      "label": "My job isn’t at the release station",
+      "title": "Can’t find your print? That happens. Let’s find it.",
+      "cause": "Your job may have gone to a different printer, or it was cleared after waiting [[how long jobs are held|2 hours]].",
+      "url": "cpl.org/tc/lost",
+      "say": "“My print job isn’t at the release station.”",
+      "steps": [
+        "At the release station, log in with the same card or guest pass you used at the computer.",
+        "Check the other release screen too [[B&W vs. color stations|— color jobs go to the second screen on the right]].",
+        "If it’s been longer than [[how long jobs are held|2 hours]], print it again from the computer."
+      ]
+    },
+    "money": {
+      "label": "It says I don’t have enough money",
+      "title": "There isn’t enough on your card for this print. Here’s how to add more.",
+      "cause": "Prints are paid at the release station from [[card balance / payment method|your print account]].",
+      "url": "cpl.org/tc/pay",
+      "say": "“The release station says I don’t have enough money.”",
+      "steps": [
+        "Add money at [[add-value station or desk|the add-value machine beside the release station]].",
+        "You can pay with [[accepted payment|cash, coins, or a debit or credit card]].",
+        "Go back to the release station. Your job is still waiting."
+      ]
+    },
+    "wrong": {
+      "label": "It printed the wrong thing, wrong size, or cut off",
+      "title": "Your print came out wrong. A setting usually fixes it.",
+      "cause": "The print window picked the wrong pages, paper size, or scale.",
+      "url": "cpl.org/tc/wrong",
+      "say": "“My print came out cut off or the wrong size.”",
+      "steps": [
+        "At the computer, open Print again and check the pages you want.",
+        "Set paper to Letter and choose “Fit to page.”",
+        "Ask staff about the misprint [[misprint refund policy|— staff can credit pages a printer jam ruined]]."
+      ]
+    },
+    "card": {
+      "label": "My card or guest pass doesn’t work",
+      "title": "Your card or guest pass may need a quick check.",
+      "cause": "The number may be mistyped, or the pass may have expired [[guest pass rule|— guest passes last one day]].",
+      "url": "cpl.org/tc/card",
+      "say": "“My card or guest pass isn’t working for printing.”",
+      "steps": [
+        "Type the number on the back of your card, with no spaces.",
+        "Guest passes last [[how long guest passes last|one day]]. Staff can make a new one.",
+        "Staff at the desk can check your card."
+      ]
+    },
+    "phone": {
+      "label": "I can’t print from my phone",
+      "title": "Printing from your phone works a little differently here.",
+      "cause": "[[supported phone printing options|Direct phone printing isn’t set up here yet]]. If there’s no direct option, email always works.",
+      "url": "cpl.org/tc/phone-help",
+      "say": "“I’m trying to print from my phone.”",
+      "steps": [
+        "Email the file to yourself from your phone.",
+        "Log in at any patron computer and open your email.",
+        "Print it there, then release it at the release station."
+      ]
+    }
+  },
+  "releaseCard": [
+    {
+      "h": "Can’t find your job?",
+      "t": "Log in here with the same card or guest pass you used at the computer. Jobs wait [[how long jobs are held|2 hours]]."
+    },
+    {
+      "h": "Not enough money?",
+      "t": "Add more at [[add-value station or desk|the add-value machine beside this screen]]. Your job keeps waiting."
+    },
+    {
+      "h": "Cut off or wrong size?",
+      "t": "Print again from the computer with paper set to Letter and “Fit to page.”"
+    }
+  ]
+}

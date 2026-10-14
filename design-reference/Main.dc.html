@@ -1,0 +1,866 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>TechCentral concierge kiosk</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0057B7}a:hover{color:#004591}
+.kiosk{--bg:#FBFAF6;--surface:#FFFFFF;--sunk:#F7F4ED;--ink:#002A5C;--ink2:#505A69;--brand:#0057B7;--brand-d:#004591;--onbrand:#FFFFFF;--accent:#E9E186;--line:#CBC4BC;--focus:#F1C400;--warn-bg:#FFE6E1;--warn-line:#B3321F;--warn-ink:#5C1309;font-family:'Work Sans',-apple-system,'Segoe UI',sans-serif;font-size:30px;line-height:1.35;color:var(--ink);background:var(--bg);position:relative;overflow:hidden;box-sizing:border-box;-webkit-font-smoothing:antialiased}
+.kiosk *{box-sizing:border-box}
+.kiosk.landscape{font-size:25px}
+.kiosk.lg{font-size:36px}
+.kiosk.landscape.lg{font-size:30px}
+.kiosk.hc{--bg:#000000;--surface:#000000;--sunk:#111111;--ink:#FFFFFF;--ink2:#FFFFFF;--brand:#FFF200;--brand-d:#FFF200;--onbrand:#000000;--accent:#FFF200;--line:#FFFFFF;--warn-bg:#000000;--warn-line:#FFF200;--warn-ink:#FFFFFF}
+.kiosk button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;margin:0}
+.kiosk button:focus-visible{outline:4px solid var(--focus);outline-offset:3px}
+.kiosk p{margin:0}
+.ph{background:#E9E186;color:#002A5C;font-weight:600;padding:0 .2em;border:1px dashed #6B6416;border-radius:2px;-webkit-box-decoration-break:clone;box-decoration-break:clone;font-size:.86em}
+.hc .ph{background:#FFF200;color:#000000;border-color:#000000}
+.session{position:absolute;inset:0;display:flex;flex-direction:column}
+.hdr{flex:none;display:flex;align-items:center;justify-content:space-between;gap:1em;padding:0 1.6em;height:2.4em;background:#002A5C;color:#F7F4ED;font-size:.72em}
+.hc .hdr{background:#000000;color:#FFFFFF;border-bottom:2px solid #FFFFFF}
+.stage{flex:1;position:relative;min-height:0}
+.main{position:absolute;inset:0;overflow:auto}
+.scr{min-height:100%;display:flex;flex-direction:column;gap:1.1em;padding:1.4em 1.6em 1em}
+.info{display:flex;flex-direction:column;gap:.5em}
+.act{display:flex;flex-direction:column;gap:.6em;margin-top:auto}
+.landscape .scr{display:grid;grid-template-columns:minmax(0,34%) minmax(0,1fr);column-gap:2.2em;align-items:stretch;padding:1.3em 1.8em 1em}
+.landscape .act{margin-top:0}
+.landscape .act .cta{margin-top:auto}
+.eyebrow{font-size:.62em;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--brand)}
+.hc .eyebrow{color:var(--ink)}
+.title{margin:0;font-size:2.1em;line-height:1.08;font-weight:700;letter-spacing:-.015em;color:var(--ink);text-wrap:balance}
+.lead{font-size:.92em;color:var(--ink2);text-wrap:pretty}
+.src{font-size:.6em;color:var(--ink2);padding-top:.3em}
+.cta{display:flex;flex-direction:column;gap:.5em}
+.row2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.5em}
+.btn{display:flex;align-items:center;justify-content:center;gap:.5em;min-height:2.6em;padding:.45em 1em;border-radius:6px;border:2px solid var(--brand);font-weight:600;text-align:center;line-height:1.15}
+.btn svg{width:1.05em;height:1.05em;flex:none}
+.btn-p{background:var(--brand);color:var(--onbrand)}
+.btn-p:active{background:var(--brand-d)}
+.btn-s{background:var(--surface);color:var(--brand)}
+.hc .btn-s{color:var(--ink);border-color:var(--ink)}
+.choices{display:grid;grid-template-columns:minmax(0,1fr);gap:.5em}
+.landscape .choices.c2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.choice{display:flex;align-items:center;gap:.8em;width:100%;text-align:left;padding:.75em .9em;background:var(--surface);border:2px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(5,31,63,.06),0 1px 1px rgba(5,31,63,.04)}
+.choice.big{min-height:4.4em}
+.choice:active{border-color:var(--brand)}
+.cic{flex:none;width:2.2em;height:2.2em;border-radius:6px;background:var(--brand);color:var(--onbrand);display:flex;align-items:center;justify-content:center}
+.cic svg{width:1.25em;height:1.25em}
+.ctx{flex:1;display:flex;flex-direction:column;gap:.15em;min-width:0}
+.cl{font-weight:600;font-size:1.08em;line-height:1.15}
+.cs{font-size:.7em;color:var(--ink2);line-height:1.3}
+.chev{flex:none;width:1em;height:1em;color:var(--brand)}
+.hc .chev{color:var(--ink)}
+.steps{display:flex;flex-direction:column;gap:.45em;margin:0;padding:0;list-style:none}
+.step{display:flex;align-items:center;gap:.75em;width:100%;text-align:left;padding:.55em .8em;background:var(--surface);border:2px solid var(--line);border-radius:6px}
+.sn{flex:none;width:1.7em;height:1.7em;border-radius:50%;background:var(--accent);color:#002A5C;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:.92em}
+.st{flex:1;min-width:0;font-size:.92em;line-height:1.25}
+.simg{flex:none;width:3.3em;height:2.4em;border-radius:4px;background:var(--sunk);border:1px dashed var(--ink2);display:flex;align-items:center;justify-content:center;color:var(--ink2)}
+.simg svg{width:1em;height:1em}
+.hint{font-size:.62em;color:var(--ink2);font-weight:500}
+.facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.45em}
+.landscape .facts{grid-template-columns:minmax(0,1fr)}
+.fact{background:var(--sunk);border:1px solid var(--line);border-radius:6px;padding:.45em .6em;display:flex;flex-direction:column;gap:.15em}
+.fk{font-size:.52em;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2)}
+.fv{font-size:.68em;line-height:1.3}
+.card{background:var(--surface);border:2px solid var(--line);border-radius:6px;padding:.85em .95em;display:flex;gap:.85em;align-items:flex-start}
+.cbody{flex:1;min-width:0;display:flex;flex-direction:column;gap:.35em}
+.th{font-weight:700;font-size:1.02em;line-height:1.15}
+.tb{font-size:.72em;color:var(--ink2);line-height:1.35}
+.takes{display:grid;grid-template-columns:minmax(0,1fr);gap:.5em}
+.landscape .takes{grid-template-columns:repeat(3,minmax(0,1fr))}
+.landscape .takes .card{flex-direction:column}
+.qrrow{display:flex;gap:.7em;align-items:center}
+.qr{flex:none;width:4.6em;height:4.6em;background:#FFFFFF;border:2px solid var(--ink);padding:.2em}
+.qr.sm{width:3.4em;height:3.4em}
+.url{font-weight:700;font-size:1em;line-height:1.2;word-break:break-word}
+.say{font-size:.86em;font-weight:600;line-height:1.3}
+.ok{display:flex;align-items:center;gap:.4em;font-size:.72em;font-weight:600;color:var(--ink)}
+.ok svg{width:1.1em;height:1.1em;color:var(--brand)}
+.islot{aspect-ratio:16/9;background:var(--sunk);border:2px dashed var(--ink2);border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.4em;padding:1em;text-align:center;color:var(--ink2);font-size:.6em}
+.islot svg{width:2.2em;height:2.2em}
+.gal{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.45em}
+.gslot{aspect-ratio:1/1;background:var(--sunk);border:2px dashed var(--ink2);border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.3em;padding:.5em;text-align:center;font-size:.48em;color:var(--ink2)}
+.gslot svg{width:2.4em;height:2.4em}
+.ways{display:grid;grid-template-columns:minmax(0,1fr);gap:.55em}
+.landscape .ways{grid-template-columns:repeat(2,minmax(0,1fr))}
+.way{display:flex;flex-direction:column;gap:.35em;width:100%;text-align:left;padding:.9em 1em;background:var(--surface);border:2px solid var(--line);border-radius:6px}
+.way.rec{border:3px solid var(--brand)}
+.tag{align-self:flex-start;font-size:.56em;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:var(--accent);color:#002A5C;padding:.25em .65em;border-radius:999px}
+.wt{font-size:1.35em;font-weight:700;line-height:1.1}
+.wb{font-size:.74em;color:var(--ink2);line-height:1.35}
+.wgo{display:flex;align-items:center;gap:.35em;font-size:.72em;font-weight:700;color:var(--brand);margin-top:.2em}
+.hc .wgo{color:var(--ink)}
+.wgo svg{width:1em;height:1em}
+.sc{background:var(--sunk);border:1px solid var(--line);border-radius:6px;padding:.65em .85em;display:flex;flex-direction:column;gap:.4em}
+.scq{display:flex;align-items:center;justify-content:space-between;gap:.6em;font-size:.72em}
+.seg{display:flex;gap:.3em;flex:none}
+.segb{min-width:3.4em;min-height:2.3em;border:2px solid var(--line);background:var(--surface);border-radius:6px;font-weight:600}
+.segb.on{background:var(--brand);color:var(--onbrand);border-color:var(--brand)}
+.sugg{font-size:.72em;font-weight:600}
+.link{background:none;border:0;padding:.4em 0;min-height:44px;color:var(--brand);font-weight:600;text-decoration:underline;text-underline-offset:3px;text-align:left;font-size:.8em}
+.hc .link{color:var(--ink)}
+.rules{display:flex;flex-direction:column;margin:0;padding:0}
+.rule{display:grid;grid-template-columns:6.4em minmax(0,1fr);gap:.6em;padding:.5em 0;border-bottom:1px solid var(--line);font-size:.78em;line-height:1.35}
+.rk{font-weight:700}
+.policy{background:var(--sunk);border:1px solid var(--line);border-radius:6px;padding:.8em;font-size:.68em;line-height:1.5}
+.scrim{position:absolute;inset:0;background:rgba(0,42,92,.55)}
+.sheet{position:absolute;left:0;right:0;bottom:0;height:72%;background:var(--bg);border-top:4px solid var(--brand);display:flex;flex-direction:column;box-shadow:0 -6px 18px rgba(5,31,63,.18)}
+.sheet.short{height:auto;max-height:80%}
+.landscape .sheet{left:auto;top:0;height:auto;max-height:none;width:48%;border-top:0;border-left:4px solid var(--brand)}
+.sh-h{flex:none;display:flex;align-items:center;gap:.6em;padding:.7em 1.2em;border-bottom:1px solid var(--line)}
+.sh-t{flex:1;font-weight:700;font-size:1.05em}
+.sh-b{flex:1;overflow:auto;padding:.9em 1.2em 1.1em;display:flex;flex-direction:column;gap:.6em}
+.xbtn{display:flex;align-items:center;gap:.35em;min-height:2.2em;padding:.2em .8em;border:2px solid var(--line);background:var(--surface);border-radius:6px;font-weight:600;font-size:.78em}
+.xbtn svg{width:1em;height:1em}
+.ctxchip{align-self:flex-start;display:inline-flex;align-items:center;gap:.35em;font-size:.62em;font-weight:600;padding:.3em .75em;border-radius:999px;background:var(--sunk);border:1px solid var(--line)}
+.notice{display:flex;gap:.6em;align-items:center;background:#FFF8D6;border:2px solid #8A6F00;border-radius:6px;padding:.6em .8em;font-size:.74em;color:#002A5C}
+.notice p{flex:1}
+.hc .notice{background:#000000;color:#FFFFFF;border-color:#FFF200}
+.qlist{display:flex;flex-direction:column;gap:.4em}
+.qchip{display:flex;align-items:center;justify-content:space-between;gap:.6em;width:100%;text-align:left;padding:.5em .9em;min-height:2.3em;background:var(--surface);border:2px solid var(--brand);border-radius:6px;color:var(--brand);font-weight:600;font-size:.88em}
+.hc .qchip{color:var(--ink)}
+.qchip svg{width:.9em;height:.9em;flex:none}
+.ansbox{background:var(--surface);border:2px solid var(--line);border-radius:6px;padding:.85em 1em;display:flex;flex-direction:column;gap:.55em}
+.asked{font-size:.66em;color:var(--ink2)}
+.ans{font-size:.92em;line-height:1.4}
+.based{align-self:flex-start;display:inline-flex;align-items:center;gap:.4em;font-size:.72em;font-weight:600;padding:.35em .8em;min-height:44px;border:2px solid var(--brand);background:transparent;color:var(--brand);border-radius:6px}
+.hc .based{color:var(--ink)}
+.based svg{width:1em;height:1em}
+.ailabel{font-size:.58em;color:var(--ink2)}
+.tools{display:flex;gap:.45em;flex-wrap:wrap;align-items:center}
+.tbtn{min-width:2.2em;min-height:2.1em;display:inline-flex;align-items:center;justify-content:center;gap:.35em;border:2px solid var(--line);background:var(--surface);border-radius:6px;padding:.2em .6em;font-size:.72em;font-weight:600}
+.tbtn svg{width:1.05em;height:1.05em}
+.tbtn.on{border-color:var(--brand);background:var(--brand);color:var(--onbrand)}
+.rhead{display:flex;align-items:center;gap:.45em;font-size:.62em;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2)}
+.rhead svg{width:1.4em;height:1.4em}
+.safety{background:var(--warn-bg);border:3px solid var(--warn-line);color:var(--warn-ink)}
+.safety .rhead{color:var(--warn-ink)}
+.safety .ans{font-weight:700;font-size:1.05em}
+.kb{display:flex;flex-direction:column;gap:.28em}
+.krow{display:flex;gap:.28em;justify-content:center}
+.key{flex:1;max-width:2.3em;min-height:2.2em;border:2px solid var(--line);background:var(--surface);border-radius:6px;font-weight:600;font-size:.82em}
+.key.wide{max-width:none;flex:3}
+.key.go{flex:2;max-width:none;background:var(--brand);color:var(--onbrand);border-color:var(--brand)}
+.typed{min-height:2.3em;border:2px solid var(--brand);border-radius:6px;padding:.4em .7em;background:var(--surface);font-size:.88em;display:flex;align-items:center}
+.caret{display:inline-block;width:2px;height:1.1em;background:var(--ink);margin-left:2px}
+.toggle{display:flex;align-items:center;gap:.8em;width:100%;text-align:left;padding:.7em .9em;min-height:3em;background:var(--surface);border:2px solid var(--line);border-radius:6px}
+.toggle[aria-pressed="true"]{border-color:var(--brand)}
+.sw{flex:none;width:2.4em;height:1.35em;border-radius:999px;background:var(--line);position:relative}
+.sw::after{content:"";position:absolute;top:.15em;left:.15em;width:1.05em;height:1.05em;border-radius:50%;background:#FFFFFF}
+.toggle[aria-pressed="true"] .sw{background:var(--brand)}
+.toggle[aria-pressed="true"] .sw::after{left:1.2em;background:var(--onbrand)}
+.tl{flex:1;display:flex;flex-direction:column;gap:.1em}
+.tl b{font-size:1em}
+.tl span{font-size:.66em;color:var(--ink2)}
+.tstate{font-size:.66em;font-weight:700;min-width:2.2em;text-align:right}
+.readbar{flex:none;display:flex;align-items:center;gap:.7em;padding:.45em 1.2em;background:#E9E186;color:#002A5C;font-size:.72em}
+.readbar p{flex:1;line-height:1.3}
+.readbar svg{width:1.3em;height:1.3em;flex:none}
+.readbar button{min-height:2.2em;padding:.2em .9em;border:2px solid #002A5C;background:#FFFFFF;color:#002A5C;border-radius:6px;font-weight:700}
+.bar{flex:none;display:grid;grid-template-columns:1fr 1.55fr 1.15fr 1fr;gap:.45em;padding:.55em 1em .75em;background:var(--sunk);border-top:2px solid var(--line)}
+.landscape .bar{grid-template-columns:1fr 2fr 1.2fr 1fr;padding:.5em 1.8em .6em}
+.bbtn{display:flex;align-items:center;justify-content:center;gap:.45em;min-height:2.8em;border-radius:6px;border:2px solid var(--line);background:var(--surface);font-weight:600;font-size:.76em;line-height:1.1;text-align:left;padding:.3em .6em}
+.bbtn svg{width:1.25em;height:1.25em;flex:none}
+.bbtn.staff{background:var(--brand);color:var(--onbrand);border-color:var(--brand)}
+.bbtn small{display:block;font-weight:500;font-size:.78em;margin-top:.15em}
+.bslot{min-height:2.8em}
+.aa{font-weight:700;font-size:1.1em;letter-spacing:-.02em}
+.idle{position:absolute;inset:0;background:rgba(0,42,92,.72);display:flex;align-items:flex-end;justify-content:center;padding:2.2em 1.6em 6.2em}
+.landscape .idle{align-items:center;padding:2em}
+.idle-card{width:100%;max-width:24em;background:var(--bg);border-radius:6px;padding:1.4em;display:flex;flex-direction:column;gap:.8em;text-align:center;border:3px solid var(--brand)}
+.count{font-size:3.6em;font-weight:700;line-height:1;color:var(--brand)}
+.hc .count{color:var(--ink)}
+.attract{position:absolute;inset:0;width:100%;height:100%;border:0;padding:2.2em 2em 2.6em;background:#002A5C;color:#F7F4ED;display:flex;flex-direction:column;justify-content:space-between;align-items:stretch;text-align:left}
+.hc .attract{background:#000000;color:#FFFFFF}
+.landscape .attract{padding:2em 3em 2.4em}
+.att-top{font-size:.7em;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#E9E186}
+.att-mid{display:flex;flex-direction:column;gap:.6em}
+.att-ics{display:flex;gap:.6em;color:#E9E186}
+.att-ics svg{width:2.6em;height:2.6em}
+.att-title{font-size:3.4em;font-weight:700;line-height:1.02;letter-spacing:-.02em;max-width:9em}
+.att-sub{font-size:1.1em;color:#C9CFD8}
+.att-low{display:flex;flex-direction:column;gap:.8em}
+.att-tap{display:flex;align-items:center;justify-content:center;gap:.5em;background:#E9E186;color:#002A5C;font-weight:700;font-size:1.3em;padding:.9em 1em;border-radius:6px}
+.att-tap svg{width:1.1em;height:1.1em}
+.att-foot{font-size:.62em;color:#C9CFD8;text-align:center}
+@media (prefers-reduced-motion: no-preference){.att-tap{animation:breathe 4s ease-in-out infinite}}
+@keyframes breathe{0%,100%{opacity:1}50%{opacity:.84}}
+</style>
+</helmet>
+<div class="{{cls}}" style="width: {{W}}px; height: {{H}}px">
+
+<sc-if value="{{isAttract}}" hint-placeholder-val="{{true}}">
+<button class="attract" onClick="{{start}}">
+<span class="att-top">TechCentral · Cleveland Public Library</span>
+<span class="att-mid">
+<span class="att-ics"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg></span>
+<span class="att-title">Printing &amp; 3D printing help</span>
+<span class="att-sub">A short plan for your visit, in under two minutes.</span>
+</span>
+<span class="att-low">
+<span class="att-tap">Tap anywhere to start<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span>
+<span class="att-foot">This screen is public. Nothing you choose is saved.</span>
+</span>
+</button>
+</sc-if>
+
+<sc-if value="{{inSession}}" hint-placeholder-val="{{false}}">
+<div class="session">
+<header class="hdr"><span><b>TechCentral</b> · Cleveland Public Library</span><span>Printing &amp; 3D printing help</span></header>
+<div class="stage">
+<main class="main">
+
+<sc-if value="{{sHome}}" hint-placeholder-val="{{false}}">
+<section class="scr">
+<div class="info">
+<span class="eyebrow">Welcome to TechCentral</span>
+<h1 class="title">What brings you in?</h1>
+<p class="lead">Tap one. You can start over any time.</p>
+</div>
+<div class="act">
+<div class="choices c2">
+<button class="choice big" onClick="{{toPrint}}"><span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg></span><span class="ctx"><span class="cl">I need to print something</span><span class="cs">Paper, today. We’ll make you a short plan.</span></span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+<button class="choice big" onClick="{{toPx}}"><span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg></span><span class="ctx"><span class="cl">My print didn’t come out</span><span class="cs">That happens. Let’s find it.</span></span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+<button class="choice big" onClick="{{to3d}}"><span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg></span><span class="ctx"><span class="cl">I want to 3D print something</span><span class="cs">See what’s possible, the rules, and your options.</span></span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+<button class="choice big" onClick="{{toOther}}"><span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></span><span class="ctx"><span class="cl">Something else</span><span class="cs">Where staff are, and today’s hours.</span></span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+</div>
+<p class="src">This screen is public. Nothing you choose here is saved.</p>
+</div>
+</section>
+</sc-if>
+
+<sc-if value="{{sOther}}" hint-placeholder-val="{{false}}">
+<section class="scr">
+<div class="info">
+<span class="eyebrow">Something else</span>
+<h1 class="title">Staff can help with that.</h1>
+<p class="lead">This screen covers printing and 3D printing. For anything else, staff at the desk can point you the right way.</p>
+</div>
+<div class="act">
+<div class="islot" role="img" aria-label="Photo of the TechCentral desk, seen from this kiosk."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg><span>Image slot · alt: “The TechCentral desk, seen from this kiosk.”</span></div>
+<div class="card"><div class="cbody"><span class="th"><sc-for list="{{staffS}}" as="p" hint-placeholder-count="1"><sc-if value="{{p.tx}}" hint-placeholder-val="{{true}}"><span>{{p.t}}</span></sc-if><sc-if value="{{p.ph}}" hint-placeholder-val="{{false}}"><span class="ph">[PLACEHOLDER: {{p.t}}]</span></sc-if></sc-for></span><span class="tb"><sc-for list="{{hoursS}}" as="p" hint-placeholder-count="1"><sc-if value="{{p.tx}}" hint-placeholder-val="{{true}}"><span>{{p.t}}</span></sc-if><sc-if value="{{p.ph}}" hint-placeholder-val="{{false}}"><span class="ph">[PLACEHOLDER: {{p.t}}]</span></sc-if></sc-for></span></div></div>
+<div class="cta"><button class="btn btn-p" onClick="{{toHome}}">Back to the start</button></div>
+<p class="src">From TechCentral · checked <span class="ph">[PLACEHOLDER: date]</span></p>
+</div>
+</section>
+</sc-if>
+
+<sc-if value="{{sP0}}" hint-placeholder-val="{{false}}">
+<section class="scr">
+<div class="info">
+<span class="eyebrow">Printing</span>
+<h1 class="title">Where’s your file?</h1>
+<p class="lead">Pick the closest match. We’ll make a plan for it.</p>
+</div>
+<div class="act">
+<div class="choices c2">
+<button class="choice big" onClick="{{srcPhone}}"><span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg></span><span class="ctx"><span class="cl">On my phone</span><span class="cs">Here, phone files print by email first. <span class="ph">[PLACEHOLDER: supported sources]</span></span></span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+<button class="choice big" onClick="{{srcUsb}}"><span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="2" width="8" height="7"></rect><path d="M6 9h12v7a5 5 0 0 1-5 5h-2a5 5 0 0 1-5-5z"></path></svg></span><span class="ctx"><span class="cl">On a USB drive</span><span class="cs">Plug it into any patron computer.</span></span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+<button class="choice big" onClick="{{srcEmail}}"><span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></span><span class="ctx"><span class="cl">In my email</span><span class="cs">Open it on a patron computer.</span></span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+<button class="choice big" onClick="{{srcMake}}"><span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg></span><span class="ctx"><span class="cl">I need to type or make it here</span><span class="cs">Use a computer here to make it, then print.</span></span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+</div>
+</div>
+</section>
+</sc-if>
+
+<sc-if value="{{sPlan}}" hint-placeholder-val="{{false}}">
+<section class="scr">
+<div class="info">
+<span class="eyebrow">{{P.eyebrow}}</span>
+<h1 class="title">{{P.title}}</h1>
+<div class="facts">
+<sc-for list="{{P.facts}}" as="f" hint-placeholder-count="3">
+<div class="fact"><span class="fk">{{f.k}}</span><span class="fv"><sc-for list="{{f.vS}}" as="p" hint-placeholder-count="1"><sc-if value="{{p.tx}}" hint-placeholder-val="{{true}}"><span>{{p.t}}</span></sc-if><sc-if value="{{p.ph}}" hint-placeholder-val="{{false}}"><span class="ph">[PLACEHOLDER: {{p.t}}]</span></sc-if></sc-for></span></div>
+</sc-for>
+</div>
+</div>
+<div class="act">
+<span class="hint">{{P.count}}</span>
+<ol class="steps">
+<sc-for list="{{P.steps}}" as="s" hint-placeholder-count="4">
+<li><button class="step" onClick="{{s.open}}"><span class="sn">{{s.n}}</span><span class="st"><sc-for list="{{s.textS}}" as="p" hint-placeholder-count="1"><sc-if value="{{p.tx}}" hint-placeholder-val="{{true}}"><span>{{p.t}}</span></sc-if><sc-if value="{{p.ph}}" hint-placeholder-val="{{false}}"><span class="ph">[PLACEHOLDER: {{p.t}}]</span></sc-if></sc-for></span><span class="simg" role="img" aria-label="{{s.alt}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg></span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg></button></li>
+</sc-for>
+</ol>
+<div class="cta">
+<button class="btn btn-p" onClick="{{toTakePlan}}">Take this with you</button>
+<button class="btn btn-s" onClick="{{askPlan}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>Ask about this plan</button>
+</div>
+<p class="src">From TechCentral · checked <span class="ph">[PLACEHOLDER: date]</span></p>
+</div>
+</section>
+</sc-if>
+
+<sc-if value="{{sStep}}" hint-placeholder-val="{{false}}">
+<section class="scr">
+<div class="info">
+<span class="eyebrow">{{SD.label}}</span>
+<h1 class="title" style="font-size: 1.6em"><sc-for list="{{SD.textS}}" as="p" hint-placeholder-count="1"><sc-if value="{{p.tx}}" hint-placeholder-val="{{true}}"><span>{{p.t}}</span></sc-if><sc-if value="{{p.ph}}" hint-placeholder-val="{{false}}"><span class="ph">[PLACEHOLDER: {{p.t}}]</span></sc-if></sc-for></h1>
+<p class="lead"><sc-for list="{{SD.detailS}}" as="p" hint-placeholder-count="1"><sc-if value="{{p.tx}}" hint-placeholder-val="{{true}}"><span>{{p.t}}</span></sc-if><sc-if value="{{p.ph}}" hint-placeholder-val="{{false}}"><span class="ph">[PLACEHOLDER: {{p.t}}]</span></sc-if></sc-for></p>
+</div>
+<div class="act">
+<sc-if value="{{SD.notFail}}" hint-placeholder-val="{{true}}">
+<div class="islot" role="img" aria-label="{{SD.alt}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg><span>Screenshot or photo slot · alt: “{{SD.alt}}”</span></div>
+</sc-if>
+<sc-if value="{{SD.isRef}}" hint-placeholder-val="{{false}}">
+<div class="card"><div class="qr sm"><svg viewBox="-1 -1 23 23" role="img" aria-label="QR code placeholder" style="width: 100%; height: 100%; display: block" shape-rendering="crispEdges"><rect x="-1" y="-1" width="23" height="23" fill="#FFFFFF"></rect><path fill="#000000" fill-rule="evenodd" d="M0 0h7v7H0zM1 1v5h5V1zM2 2h3v3H2zM14 0h7v7h-7zM15 1v5h5V1zM16 2h3v3h-3zM0 14h7v7H0zM1 15v5h5v-5zM2 16h3v3H2zM8 0h1v1H8zM10 1h2v1h-2zM9 3h1v2H9zM11 4h2v1h-2zM8 6h1v1H8zM12 6h1v2h-1zM0 8h2v1H0zM3 8h1v1H3zM5 9h2v1H5zM8 8h3v1H8zM13 8h1v1h-1zM15 8h2v1h-2zM19 8h2v1h-2zM1 10h1v2H1zM4 11h2v1H4zM9 10h1v1H9zM11 10h2v2h-2zM14 10h1v1h-1zM17 10h1v2h-1zM20 11h1v1h-1zM8 12h1v1H8zM15 12h2v1h-2zM19 13h2v1h-2zM8 14h2v1H8zM11 14h1v2h-1zM14 15h2v1h-2zM18 15h1v1h-1zM9 16h1v1H9zM16 17h3v1h-3zM8 18h2v1H8zM12 18h1v1h-1zM14 19h2v1h-2zM19 19h2v2h-2zM10 20h2v1h-2zM17 20h1v1h-1z"></path></svg></div><div class="cbody"><span class="th">Reference mode on your phone</span><span class="url">cpl.org/tc/ref <span class="ph">[PLACEHOLDER: short URL]</span></span><span class="tb">No phone? The same steps are on the card beside each printer.</span></div></div>
+</sc-if>
+<sc-if value="{{SD.isFail}}" hint-placeholder-val="{{false}}">
+<div class="choices">
+<sc-for list="{{SD.fails}}" as="fl" hint-placeholder-count="4">
+<button class="choice" onClick="{{fl.pick}}" aria-pressed="{{fl.pressed}}" style="{{fl.style}}"><span class="ctx"><span class="cl" style="font-size: .95em">{{fl.label}}</span></span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+</sc-for>
+</div>
+<sc-if value="{{SD.failSafety}}" hint-placeholder-val="{{false}}">
+<div class="ansbox safety" role="alert"><span class="rhead"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>Safety</span><p class="ans">Stop the printer if it’s safe to, and tell staff right now.</p><p class="tb" style="color: inherit"><sc-for list="{{staffS}}" as="p" hint-placeholder-count="1"><sc-if value="{{p.tx}}" hint-placeholder-val="{{true}}"><span>{{p.t}}</span></sc-if><sc-if value="{{p.ph}}" hint-placeholder-val="{{false}}"><span class="ph">[PLACEHOLDER: {{p.t}}]</span></sc-if></sc-for></p></div>
+</sc-if>
+<sc-if value="{{SD.failFix}}" hint-placeholder-val="{{false}}">
+<div class="ansbox"><p class="ans"><sc-for list="{{SD.failFixS}}" as="p" hint-placeholder-count="1"><sc-if value="{{p.tx}}" hint-placeholder-val="{{true}}"><span>{{p.t}}</span></sc-if><sc-if value="{{p.ph}}" hint-placeholder-val="{{false}}"><span class="ph">[PLACEHOLDER: {{p.t}}]</span></sc-if></sc-for></p><p class="tb">Still stuck? Staff can sort this out.</p></div>
+</sc-if>
+</sc-if>
+<sc-if value="{{SD.isRules}}" hint-placeholder-val="{{false}}">
+<button class="link" onClick="{{toRules}}">See the rules</button>
+</sc-if>
+<span class="hint">{{SD.progress}}</span>
+<div class="cta">
+<div class="row2">
+<button class="btn btn-s" onClick="{{back}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>Back to plan</button>
+<sc-if value="{{SD.hasNext}}" hint-placeholder-val="{{true}}"><button class="btn btn-p" onClick="{{SD.next}}">Next step<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></button></sc-if>
+<sc-if value="{{SD.isLast}}" hint-placeholder-val="{{false}}"><button class="btn btn-p" onClick="{{toTakePlan}}">Take this with you</button></sc-if>
+</div>
+</div>
+<p class="src">From TechCentral · checked <span class="ph">[PLACEHOLDER: date]</span></p>
+</div>
+</section>
+</sc-if>
+
+<sc-if value="{{sTake}}" hint-placeholder-val="{{false}}">
+<section class="scr">
+<div class="info">
+<span class="eyebrow">Take this with you</span>
+<h1 class="title">How do you want to take your plan?</h1>
+<span class="ctxchip">{{T.name}}</span>
+<p class="lead">Pick any. Nothing about you is saved.</p>
+</div>
+<div class="act">
+<div class="takes">
+<sc-if value="{{hasPrinter}}" hint-placeholder-val="{{true}}">
+<div class="card"><span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg></span><div class="cbody"><span class="th">Print it</span><span class="tb">A slip with your plan, the short link, and where staff are. Free. <span class="ph">[PLACEHOLDER: confirm]</span></span>
+<sc-if value="{{T.notPrinted}}" hint-placeholder-val="{{true}}"><button class="btn btn-s" onClick="{{takePrint}}">Print my plan</button></sc-if>
+<sc-if value="{{T.printed}}" hint-placeholder-val="{{false}}"><span class="ok" role="status"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>Printing now. Take it from the slot <span class="ph">[PLACEHOLDER: below the screen]</span></span></sc-if>
+</div></div>
+</sc-if>
+<div class="card"><div class="qr"><svg viewBox="-1 -1 23 23" role="img" aria-label="QR code placeholder for {{T.url}}" style="width: 100%; height: 100%; display: block" shape-rendering="crispEdges"><rect x="-1" y="-1" width="23" height="23" fill="#FFFFFF"></rect><path fill="#000000" fill-rule="evenodd" d="M0 0h7v7H0zM1 1v5h5V1zM2 2h3v3H2zM14 0h7v7h-7zM15 1v5h5V1zM16 2h3v3h-3zM0 14h7v7H0zM1 15v5h5v-5zM2 16h3v3H2zM8 0h1v1H8zM10 1h2v1h-2zM9 3h1v2H9zM11 4h2v1h-2zM8 6h1v1H8zM12 6h1v2h-1zM0 8h2v1H0zM3 8h1v1H3zM5 9h2v1H5zM8 8h3v1H8zM13 8h1v1h-1zM15 8h2v1h-2zM19 8h2v1h-2zM1 10h1v2H1zM4 11h2v1H4zM9 10h1v1H9zM11 10h2v2h-2zM14 10h1v1h-1zM17 10h1v2h-1zM20 11h1v1h-1zM8 12h1v1H8zM15 12h2v1h-2zM19 13h2v1h-2zM8 14h2v1H8zM11 14h1v2h-1zM14 15h2v1h-2zM18 15h1v1h-1zM9 16h1v1H9zM16 17h3v1h-3zM8 18h2v1H8zM12 18h1v1h-1zM14 19h2v1h-2zM19 19h2v2h-2zM10 20h2v1h-2zM17 20h1v1h-1z"></path></svg></div><div class="cbody"><span class="th">Scan to your phone</span><span class="url">{{T.url}}</span><span class="ph" style="align-self: flex-start">[PLACEHOLDER: real short URL + QR]</span><span class="tb">Point your camera at the code, or type the link.</span></div></div>
+<div class="card"><span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></span><div class="cbody"><span class="th">Show staff</span><span class="tb">Tell staff at the desk:</span><span class="say">{{T.say}}</span><span class="tb"><sc-for list="{{staffS}}" as="p" hint-placeholder-count="1"><sc-if value="{{p.tx}}" hint-placeholder-val="{{true}}"><span>{{p.t}}</span></sc-if><sc-if value="{{p.ph}}" hint-placeholder-val="{{false}}"><span class="ph">[PLACEHOLDER: {{p.t}}]</span></sc-if></sc-for></span></div></div>
+</div>
+<sc-if value="{{T.hasAdded}}" hint-placeholder-val="{{false}}">
+<div class="fact"><span class="fk">Also on your plan</span><sc-for list="{{T.added}}" as="ad" hint-placeholder-count="1"><span class="fv">{{ad.q}}</span></sc-for></div>
+</sc-if>
+<div class="cta">
+<p class="th" style="text-align: center">You’re all set.</p>
+<div class="row2">
+<button class="btn btn-s" onClick="{{toHomeFresh}}">Something else</button>
+<button class="btn btn-p" onClick="{{reset}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>Done</button>
+</div>
+</div>
+<p class="src">From TechCentral · checked <span class="ph">[PLACEHOLDER: date]</span></p>
+</div>
+</section>
+</sc-if>
+
+<sc-if value="{{sPx}}" hint-placeholder-val="{{false}}">
+<section class="scr">
+<div class="info">
+<span class="eyebrow">My print didn’t come out</span>
+<h1 class="title">What happened?</h1>
+<p class="lead">That happens. Pick the closest match.</p>
+</div>
+<div class="act">
+<div class="choices">
+<sc-for list="{{pxList}}" as="x" hint-placeholder-count="6">
+<button class="choice" onClick="{{x.pick}}"><span class="ctx"><span class="cl" style="font-size: .98em">{{x.label}}</span></span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+</sc-for>
+</div>
+</div>
+</section>
+</sc-if>
+
+<sc-if value="{{sFx}}" hint-placeholder-val="{{false}}">
+<section class="scr">
+<div class="info">
+<span class="eyebrow">{{F.label}}</span>
+<h1 class="title" style="font-size: 1.65em">{{F.title}}</h1>
+<p class="lead"><b>Likely cause:</b> <sc-for list="{{F.causeS}}" as="p" hint-placeholder-count="1"><sc-if value="{{p.tx}}" hint-placeholder-val="{{true}}"><span>{{p.t}}</span></sc-if><sc-if value="{{p.ph}}" hint-placeholder-val="{{false}}"><span class="ph">[PLACEHOLDER: {{p.t}}]</span></sc-if></sc-for></p>
+</div>
+<div class="act">
+<ol class="steps">
+<sc-for list="{{F.steps}}" as="s" hint-placeholder-count="3">
+<li class="step"><span class="sn">{{s.n}}</span><span class="st"><sc-for list="{{s.textS}}" as="p" hint-placeholder-count="1"><sc-if value="{{p.tx}}" hint-placeholder-val="{{true}}"><span>{{p.t}}</span></sc-if><sc-if value="{{p.ph}}" hint-placeholder-val="{{false}}"><span class="ph">[PLACEHOLDER: {{p.t}}]</span></sc-if></sc-for></span></li>
+</sc-for>
+</ol>
+<div class="card"><div class="qr sm"><svg viewBox="-1 -1 23 23" role="img" aria-label="QR code placeholder for {{F.url}}" style="width: 100%; height: 100%; display: block" shape-rendering="crispEdges"><rect x="-1" y="-1" width="23" height="23" fill="#FFFFFF"></rect><path fill="#000000" fill-rule="evenodd" d="M0 0h7v7H0zM1 1v5h5V1zM2 2h3v3H2zM14 0h7v7h-7zM15 1v5h5V1zM16 2h3v3h-3zM0 14h7v7H0zM1 15v5h5v-5zM2 16h3v3H2zM8 0h1v1H8zM10 1h2v1h-2zM9 3h1v2H9zM11 4h2v1h-2zM8 6h1v1H8zM12 6h1v2h-1zM0 8h2v1H0zM3 8h1v1H3zM5 9h2v1H5zM8 8h3v1H8zM13 8h1v1h-1zM15 8h2v1h-2zM19 8h2v1h-2zM1 10h1v2H1zM4 11h2v1H4zM9 10h1v1H9zM11 10h2v2h-2zM14 10h1v1h-1zM17 10h1v2h-1zM20 11h1v1h-1zM8 12h1v1H8zM15 12h2v1h-2zM19 13h2v1h-2zM8 14h2v1H8zM11 14h1v2h-1zM14 15h2v1h-2zM18 15h1v1h-1zM9 16h1v1H9zM16 17h3v1h-3zM8 18h2v1H8zM12 18h1v1h-1zM14 19h2v1h-2zM19 19h2v2h-2zM10 20h2v1h-2zM17 20h1v1h-1z"></path></svg></div><div class="cbody"><span class="th" style="font-size: .9em">Scan to your phone</span><span class="url" style="font-size: .9em">{{F.url}} <span class="ph">[PLACEHOLDER: short URL]</span></span><span class="tb">Take these steps back to the computer or printer.</span></div></div>
+<div class="card" style="align-items: center"><span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></span><div class="cbody"><span class="th" style="font-size: .9em">Still stuck? Staff can sort this out.</span><span class="tb"><sc-for list="{{staffS}}" as="p" hint-placeholder-count="1"><sc-if value="{{p.tx}}" hint-placeholder-val="{{true}}"><span>{{p.t}}</span></sc-if><sc-if value="{{p.ph}}" hint-placeholder-val="{{false}}"><span class="ph">[PLACEHOLDER: {{p.t}}]</span></sc-if></sc-for></span></div></div>
+<div class="cta">
+<div class="row2">
+<button class="btn btn-s" onClick="{{askFix}}">Ask about this</button>
+<button class="btn btn-p" onClick="{{toTakeFix}}">Take this with you</button>
+</div>
+</div>
+<p class="src">From TechCentral · checked <span class="ph">[PLACEHOLDER: date]</span></p>
+</div>
+</section>
+</sc-if>
+
+<sc-if value="{{sFxOther}}" hint-placeholder-val="{{false}}">
+<section class="scr">
+<div class="info">
+<span class="eyebrow">My print didn’t come out</span>
+<h1 class="title">Something else went wrong.</h1>
+<p class="lead">Ask here, or ask a person. Both work.</p>
+</div>
+<div class="act">
+<div class="ways">
+<button class="way" onClick="{{askFix}}"><span class="wt">Ask about it here</span><span class="wb">Pick a common question or type your own. Answers come from TechCentral’s guide.</span><span class="wgo">Ask here</span></button>
+<button class="way" onClick="{{openStaff}}"><span class="wt">Ask staff</span><span class="wb"><sc-for list="{{staffS}}" as="p" hint-placeholder-count="1"><sc-if value="{{p.tx}}" hint-placeholder-val="{{true}}"><span>{{p.t}}</span></sc-if><sc-if value="{{p.ph}}" hint-placeholder-val="{{false}}"><span class="ph">[PLACEHOLDER: {{p.t}}]</span></sc-if></sc-for></span><span class="wgo">Where staff are</span></button>
+</div>
+</div>
+</section>
+</sc-if>
+
+<sc-if value="{{sM0}}" hint-placeholder-val="{{false}}">
+<section class="scr">
+<div class="info">
+<span class="eyebrow">3D printing</span>
+<h1 class="title">What you can make</h1>
+<p class="lead">Most people bring a file and our staff print it for you. It usually takes <span class="ph">[PLACEHOLDER: N days]</span>.</p>
+<p class="lead">Cost: <span class="ph">[PLACEHOLDER: pricing]</span></p>
+</div>
+<div class="act">
+<div class="gal">
+<sc-for list="{{gallery}}" as="g" hint-placeholder-count="6">
+<div class="gslot" role="img" aria-label="{{g}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg><span>{{g}}</span></div>
+</sc-for>
+</div>
+<div class="cta">
+<button class="btn btn-p" onClick="{{toM1}}">Let’s start</button>
+<button class="btn btn-s" onClick="{{toRules}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>See the rules first</button>
+</div>
+<p class="src">From TechCentral · checked <span class="ph">[PLACEHOLDER: date]</span></p>
+</div>
+</section>
+</sc-if>
+
+<sc-if value="{{sM1}}" hint-placeholder-val="{{false}}">
+<section class="scr">
+<div class="info">
+<span class="eyebrow">3D printing</span>
+<h1 class="title">Which way is right for you?</h1>
+<p class="lead">Both get you a print. You choose.</p>
+</div>
+<div class="act">
+<div class="ways">
+<button class="way rec" onClick="{{toPlanA}}"><span class="tag">Recommended for your first print</span><span class="wt">We print it for you</span><span class="wb">You bring the file; staff set up and run the printer.</span><span class="wb">Most people start here, including people who’ve printed before. Our staff know these machines’ quirks.</span><span class="wgo">See this plan<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span></button>
+<button class="way" onClick="{{toPlanB}}"><span class="wt">Run it yourself</span><span class="wb">For people who’ve been checked out on our printers. <span class="ph">[PLACEHOLDER: the actual qualification rule]</span></span><span class="wgo">See this plan<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span></button>
+</div>
+<sc-if value="{{scClosed}}" hint-placeholder-val="{{true}}">
+<button class="link" onClick="{{toggleSc}}">Help me choose: three quick questions</button>
+</sc-if>
+<sc-if value="{{scOpen}}" hint-placeholder-val="{{false}}">
+<div class="sc">
+<sc-for list="{{scItems}}" as="q" hint-placeholder-count="3">
+<div class="scq"><span>{{q.q}}</span><span class="seg"><button class="{{q.yCls}}" onClick="{{q.yes}}" aria-pressed="{{q.yOn}}">Yes</button><button class="{{q.nCls}}" onClick="{{q.no}}" aria-pressed="{{q.nOn}}">No</button></span></div>
+</sc-for>
+<p class="sugg" role="status">{{scSugg}}</p>
+</div>
+</sc-if>
+<button class="link" onClick="{{askM1}}">Not sure which? Ask.</button>
+<p class="src">From TechCentral · checked <span class="ph">[PLACEHOLDER: date]</span></p>
+</div>
+</section>
+</sc-if>
+
+<sc-if value="{{sRules}}" hint-placeholder-val="{{false}}">
+<section class="scr">
+<div class="info">
+<span class="eyebrow">3D printing</span>
+<h1 class="title">The rules, in plain words</h1>
+<p class="lead">Check these before you start. Staff make the final call.</p>
+</div>
+<div class="act">
+<dl class="rules">
+<sc-for list="{{rules}}" as="r" hint-placeholder-count="6">
+<div class="rule"><dt class="rk">{{r.k}}</dt><dd style="margin: 0"><sc-for list="{{r.vS}}" as="p" hint-placeholder-count="1"><sc-if value="{{p.tx}}" hint-placeholder-val="{{true}}"><span>{{p.t}}</span></sc-if><sc-if value="{{p.ph}}" hint-placeholder-val="{{false}}"><span class="ph">[PLACEHOLDER: {{p.t}}]</span></sc-if></sc-for></dd></div>
+</sc-for>
+</dl>
+<button class="link" onClick="{{toggleRules}}" aria-expanded="{{rulesOpenS}}">{{rulesLabel}}</button>
+<sc-if value="{{rulesOpen}}" hint-placeholder-val="{{false}}">
+<div class="policy"><span class="ph">[PLACEHOLDER: official TechCentral 3D printing policy text, verbatim]</span></div>
+</sc-if>
+<div class="cta"><button class="btn btn-p" onClick="{{toM1}}">Let’s start</button></div>
+<p class="src">From TechCentral 3D printing policy · checked <span class="ph">[PLACEHOLDER: date]</span></p>
+</div>
+</section>
+</sc-if>
+
+</main>
+
+<sc-if value="{{ovAssistant}}" hint-placeholder-val="{{false}}">
+<div class="scrim"></div>
+<section class="sheet" role="dialog" aria-modal="true" aria-label="Ask about this">
+<div class="sh-h"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width: 1.2em; height: 1.2em; color: var(--brand)"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg><span class="sh-t">Ask about this</span><button class="xbtn" onClick="{{closeOv}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>Close</button></div>
+<div class="sh-b">
+<span class="ctxchip">{{A.chip}}</span>
+<sc-if value="{{A.showNotice}}" hint-placeholder-val="{{false}}">
+<div class="notice" role="note"><p><b>This screen is public.</b> Don’t type personal information. Everything is erased when you finish.</p><button class="xbtn" onClick="{{seeNotice}}">OK</button></div>
+</sc-if>
+<sc-if value="{{A.showChips}}" hint-placeholder-val="{{true}}">
+<span class="hint">Tap a question</span>
+<div class="qlist">
+<sc-for list="{{A.chips}}" as="c" hint-placeholder-count="4">
+<button class="qchip" onClick="{{c.pick}}"><span>{{c.q}}</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+</sc-for>
+</div>
+<button class="link" onClick="{{openKb}}">Type a question instead</button>
+</sc-if>
+<sc-if value="{{A.kb}}" hint-placeholder-val="{{false}}">
+<label class="hint" for="kq">Type your question</label>
+<div class="typed" id="kq" role="textbox" aria-readonly="true">{{A.typed}}<span class="caret"></span></div>
+<div class="kb" aria-label="On-screen keyboard">
+<sc-for list="{{A.keys}}" as="row" hint-placeholder-count="3">
+<div class="krow"><sc-for list="{{row}}" as="k" hint-placeholder-count="10"><button class="key" onClick="{{k.press}}">{{k.k}}</button></sc-for></div>
+</sc-for>
+<div class="krow"><button class="key wide" onClick="{{keySpace}}">Space</button><button class="key wide" style="flex: 1.4" onClick="{{keyDel}}">Delete</button><button class="key go" onClick="{{keyAsk}}">Ask</button></div>
+</div>
+<button class="link" onClick="{{closeKb}}">Back to suggested questions</button>
+</sc-if>
+<sc-if value="{{A.hasAns}}" hint-placeholder-val="{{false}}">
+<p class="asked">You asked: “{{A.ans.q}}”</p>
+<sc-if value="{{A.ans.isAnswer}}" hint-placeholder-val="{{false}}">
+<div class="ansbox">
+<p class="ans"><sc-for list="{{A.ans.textS}}" as="p" hint-placeholder-count="1"><sc-if value="{{p.tx}}" hint-placeholder-val="{{true}}"><span>{{p.t}}</span></sc-if><sc-if value="{{p.ph}}" hint-placeholder-val="{{false}}"><span class="ph">[PLACEHOLDER: {{p.t}}]</span></sc-if></sc-for></p>
+<button class="based" onClick="{{A.ans.jump}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>Based on: {{A.ans.based}}</button>
+<p class="ailabel">AI answer · from TechCentral’s guide · checked <span class="ph">[PLACEHOLDER: date]</span></p>
+<div class="tools">
+<button class="{{A.upCls}}" onClick="{{voteUp}}" aria-pressed="{{A.upOn}}" aria-label="Helpful"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg></button>
+<button class="{{A.downCls}}" onClick="{{voteDown}}" aria-pressed="{{A.downOn}}" aria-label="Not helpful"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"></path></svg></button>
+<button class="{{A.addCls}}" onClick="{{addToPlan}}" aria-pressed="{{A.addOn}}">{{A.addLabel}}</button>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{A.ans.isRefusal}}" hint-placeholder-val="{{false}}">
+<div class="ansbox" role="status">
+<span class="rhead"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>{{A.ans.head}}</span>
+<p class="ans"><sc-for list="{{A.ans.textS}}" as="p" hint-placeholder-count="1"><sc-if value="{{p.tx}}" hint-placeholder-val="{{true}}"><span>{{p.t}}</span></sc-if><sc-if value="{{p.ph}}" hint-placeholder-val="{{false}}"><span class="ph">[PLACEHOLDER: {{p.t}}]</span></sc-if></sc-for></p>
+<div class="tools"><button class="btn btn-p" style="min-height: 2.2em; font-size: .8em" onClick="{{openStaff}}">Where staff are</button><sc-if value="{{A.ans.hasRules}}" hint-placeholder-val="{{false}}"><button class="btn btn-s" style="min-height: 2.2em; font-size: .8em" onClick="{{toRules}}">See the rules</button></sc-if></div>
+<p class="ailabel">{{A.ans.foot}}</p>
+</div>
+</sc-if>
+<sc-if value="{{A.ans.isSafety}}" hint-placeholder-val="{{false}}">
+<div class="ansbox safety" role="alert">
+<span class="rhead"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>Safety</span>
+<p class="ans">Stop the printer if it’s safe to, and tell staff right now.</p>
+<p class="tb" style="color: inherit"><sc-for list="{{staffS}}" as="p" hint-placeholder-count="1"><sc-if value="{{p.tx}}" hint-placeholder-val="{{true}}"><span>{{p.t}}</span></sc-if><sc-if value="{{p.ph}}" hint-placeholder-val="{{false}}"><span class="ph">[PLACEHOLDER: {{p.t}}]</span></sc-if></sc-for></p>
+<p class="ailabel" style="color: inherit">Fixed safety message · always the same · not written by AI</p>
+</div>
+</sc-if>
+<button class="link" onClick="{{clearAns}}">Ask another question</button>
+</sc-if>
+</div>
+</section>
+</sc-if>
+
+<sc-if value="{{ovA11y}}" hint-placeholder-val="{{false}}">
+<div class="scrim"></div>
+<section class="sheet short" role="dialog" aria-modal="true" aria-label="Accessibility options">
+<div class="sh-h"><span class="aa" aria-hidden="true">Aa</span><span class="sh-t">Accessibility options</span><button class="xbtn" onClick="{{closeOv}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>Close</button></div>
+<div class="sh-b">
+<button class="toggle" onClick="{{toggleLg}}" aria-pressed="{{lgS}}"><span class="tl"><b>Larger text</b><span>Makes everything on screen bigger.</span></span><span class="tstate">{{lgLabel}}</span><span class="sw" aria-hidden="true"></span></button>
+<button class="toggle" onClick="{{toggleHc}}" aria-pressed="{{hcS}}"><span class="tl"><b>High contrast</b><span>White and yellow on black.</span></span><span class="tstate">{{hcLabel}}</span><span class="sw" aria-hidden="true"></span></button>
+<button class="toggle" onClick="{{toggleRead}}" aria-pressed="{{readS}}"><span class="tl"><b>Read aloud</b><span>Reads each screen through the speaker or headphone jack. <span class="ph">[PLACEHOLDER: confirm audio hardware]</span></span></span><span class="tstate">{{readLabel}}</span><span class="sw" aria-hidden="true"></span></button>
+<p class="hint">These turn off when you finish.</p>
+</div>
+</section>
+</sc-if>
+
+<sc-if value="{{ovStaff}}" hint-placeholder-val="{{false}}">
+<div class="scrim"></div>
+<section class="sheet short" role="dialog" aria-modal="true" aria-label="Staff help">
+<div class="sh-h"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width: 1.2em; height: 1.2em; color: var(--brand)"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg><span class="sh-t">Staff can help</span><button class="xbtn" onClick="{{closeOv}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>Close</button></div>
+<div class="sh-b">
+<p class="th" style="font-size: 1.3em"><sc-for list="{{staffS}}" as="p" hint-placeholder-count="1"><sc-if value="{{p.tx}}" hint-placeholder-val="{{true}}"><span>{{p.t}}</span></sc-if><sc-if value="{{p.ph}}" hint-placeholder-val="{{false}}"><span class="ph">[PLACEHOLDER: {{p.t}}]</span></sc-if></sc-for></p>
+<div class="islot" role="img" aria-label="The TechCentral desk, seen from this kiosk." style="aspect-ratio: 21/9"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg><span>Image slot · alt: “The TechCentral desk, seen from this kiosk.”</span></div>
+<p class="lead"><sc-for list="{{hoursS}}" as="p" hint-placeholder-count="1"><sc-if value="{{p.tx}}" hint-placeholder-val="{{true}}"><span>{{p.t}}</span></sc-if><sc-if value="{{p.ph}}" hint-placeholder-val="{{false}}"><span class="ph">[PLACEHOLDER: {{p.t}}]</span></sc-if></sc-for></p>
+<p class="lead">Walk over, or show them this screen. No need to explain everything — they’ll ask.</p>
+</div>
+</section>
+</sc-if>
+
+</div>
+
+<sc-if value="{{read}}" hint-placeholder-val="{{false}}">
+<div class="readbar" role="status"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg><p><b>Reading aloud:</b> “{{readText}}”</p><button onClick="{{toggleRead}}">Stop</button></div>
+</sc-if>
+
+<nav class="bar" aria-label="Always available">
+<sc-if value="{{showBack}}" hint-placeholder-val="{{false}}"><button class="bbtn" onClick="{{back}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>Back</button></sc-if>
+<sc-if value="{{noBack}}" hint-placeholder-val="{{true}}"><span class="bslot"></span></sc-if>
+<button class="bbtn staff" onClick="{{openStaff}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg><span>Staff help<small>Desk · <span class="ph">[PLACEHOLDER: to your left]</span></small></span></button>
+<button class="bbtn" onClick="{{openA11y}}"><span class="aa" aria-hidden="true">Aa</span>Accessibility</button>
+<button class="bbtn" onClick="{{reset}}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>Start over</button>
+</nav>
+</div>
+</sc-if>
+
+<sc-if value="{{ovIdle}}" hint-placeholder-val="{{false}}">
+<div class="idle" role="alertdialog" aria-modal="true" aria-label="Still there?">
+<div class="idle-card">
+<p class="title" style="font-size: 1.8em">Still there?</p>
+<p class="lead">We’ll start over for the next person in</p>
+<p class="count" aria-live="polite">{{count}}</p>
+<p class="lead">{{countLabel}}</p>
+<button class="btn btn-p" style="min-height: 3.2em; font-size: 1.15em" onClick="{{stillHere}}">I’m still here</button>
+<button class="btn btn-s" onClick="{{reset}}">Start over now</button>
+</div>
+</div>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"orientation":{"editor":"enum","options":["portrait","landscape"],"default":"portrait"},"printer":{"editor":"boolean","default":true},"start":{"editor":null,"tsType":"string"},"timers":{"editor":null,"tsType":"string"},"$preview":{"width":1080,"height":1920}}'>
+const IDLE_MS = 50000;
+const BOOL = ["kb","noticeSeen","lg","hc","read","sc","rulesOpen"];
+const DEF = {screen:"attract",plan:"usb",sym:"lost",step:"0",ov:"",prevOv:"",actx:"print",aq:"",kb:false,typed:"",noticeSeen:false,lg:false,hc:false,read:false,added:[],took:"",sc:false,sc1:"",sc2:"",sc3:"",fail:"",rulesOpen:false,hist:[],count:"15",vote:"",takeFrom:"plan"};
+const STAFF = "Staff are at the desk [[to your left]].";
+const HOURS = "Open today [[hours]].";
+function seg(s){ s = s || ""; const out = []; const re = /\[\[(.+?)\]\]/g; let i = 0, m; while ((m = re.exec(s))) { if (m.index > i) out.push({t:s.slice(i, m.index), tx:true, ph:false}); out.push({t:m[1], tx:false, ph:true}); i = m.index + m[0].length; } if (i < s.length) out.push({t:s.slice(i), tx:true, ph:false}); return out; }
+function plain(s){ return (s || "").replace(/\[\[(.+?)\]\]/g, "[PLACEHOLDER: $1]"); }
+const LOGIN = {text:"Sit at any patron computer and log in with [[library card / guest pass]].", detail:"Any computer marked “Patron computer” works. Type the number on the back of your library card, or the guest pass number from the desk [[guest pass rule]].", alt:"A patron computer’s login screen, with the card-number box highlighted."};
+const PRINTSTEP = {text:"Open your file and choose Print → [[printer name]].", detail:"Choose File, then Print. In the printer list, pick [[B&W printer name]] for black and white or [[color printer name]] for color. Check the page count before you press Print.", alt:"The print window, with the printer list open and the TechCentral printer selected."};
+const RELEASE = {text:"Go to the release station [[location]], pay [[B&W / color per page]], and print.", detail:"Your job waits at the release station, not at the printer. Log in with the same card or guest pass, tap your job, check the price, and tap Print. Pay with [[accepted payment]].", alt:"The release station: the screen to the right of the printers."};
+function pf(bring){ return [{k:"Cost", v:"B&W [[price]] a page · color [[price]] a page"},{k:"Your job waits", v:"[[how long jobs are held]]"},{k:"Bring", v:bring}]; }
+const PLANS = {
+  usb:{eyebrow:"Your printing plan", title:"Print from your USB drive", chip:"Printing plan · File on USB", ctx:"print", url:"cpl.org/tc/usb", say:"“I’m printing a file from my USB drive.”", idx:{print:1, pay:3}, facts:pf("Your USB drive, plus a library card or guest pass"), steps:[
+    {text:LOGIN.text, detail:LOGIN.detail + " Then plug your USB drive into the computer [[port location]].", alt:LOGIN.alt},
+    PRINTSTEP,
+    {text:"Go to the release station [[location]].", detail:"Your job waits there, not at the printer. Look for the touchscreen next to the printers.", alt:"The release station: the screen to the right of the printers."},
+    {text:"Find your job, pay [[B&W / color per page]], and print.", detail:"Log in with the same card or guest pass you used at the computer. Tap your job, check the page count and price, then tap Print. Pay with [[accepted payment]].", alt:"The release station screen showing one waiting job and its price."}
+  ]},
+  phone:{eyebrow:"Your printing plan", title:"Print a file from your phone", chip:"Printing plan · File on phone", ctx:"print", url:"cpl.org/tc/phone", say:"“I want to print a file that’s on my phone.”", idx:{print:2, pay:3}, facts:pf("Your phone, plus a library card or guest pass"), steps:[
+    {text:"Email the file to yourself from your phone.", detail:"Open the file on your phone, tap Share, and send it to your own email. [[If TechCentral offers direct phone printing, describe it here instead]]", alt:"A phone’s share menu with Email selected."},
+    LOGIN,
+    {text:"Open your email in the browser, download the file, and choose Print → [[printer name]].", detail:"Sign in to your email in the browser. Download the attachment, open it, then choose File, then Print. Sign out of your email when you’re done.", alt:"A web email inbox with the attachment’s download button highlighted."},
+    RELEASE
+  ]},
+  email:{eyebrow:"Your printing plan", title:"Print a file from your email", chip:"Printing plan · File in email", ctx:"print", url:"cpl.org/tc/email", say:"“I want to print a file from my email.”", idx:{print:2, pay:3}, facts:pf("Your email password, plus a library card or guest pass"), steps:[
+    LOGIN,
+    {text:"Open your email in the browser and download the attachment.", detail:"Sign in to your email in the browser. Open the message and download the file. Sign out when you’re done — this computer is shared.", alt:"A web email message with the attachment’s download button highlighted."},
+    PRINTSTEP,
+    RELEASE
+  ]},
+  make:{eyebrow:"Your printing plan", title:"Make it here, then print it", chip:"Printing plan · Make it here", ctx:"print", url:"cpl.org/tc/make", say:"“I need to make a document on a computer here and print it.”", idx:{print:3, pay:4}, facts:pf("A library card or guest pass. A USB drive to keep a copy."), steps:[
+    LOGIN,
+    {text:"Open [[word processor]] and make your document.", detail:"Find [[word processor]] on the desktop. Templates for résumés and letters are under File → New [[confirm]].", alt:"The desktop, with the word processor icon highlighted."},
+    {text:"Save a copy to your email or a USB drive.", detail:"Patron computers erase everything when you log out [[confirm]]. Save a copy before you print so you don’t lose your work.", alt:"The Save As window."},
+    PRINTSTEP,
+    RELEASE
+  ]},
+  A:{eyebrow:"Your 3D printing plan", title:"We print it for you", chip:"3D printing plan · We print it", ctx:"planA", url:"cpl.org/tc/3d", say:"“I’d like staff to 3D print a file for me.”", facts:[{k:"Cost", v:"[[pricing, e.g. per gram]]"},{k:"Ready in", v:"About [[N days]]"},{k:"Bring", v:"Your file on [[USB / email / upload link]]"}], steps:[
+    {text:"Get a print-ready file.", detail:"Download a model from a trusted source such as [[trusted model sources]], or bring one you made. We accept [[accepted file types]].", alt:"A 3D model file open on a computer screen."},
+    {text:"Check that it fits the rules.", detail:"It has to fit within [[size limit]] — about the size of a coffee mug [[confirm]] — and print in under [[time limit]]. Some items aren’t allowed.", alt:"A coffee mug next to a finished print, showing the size limit.", rules:true},
+    {text:"Submit it [[how and where]].", detail:"[[How to submit: form, email address, or at the desk]]. Staff check every file before printing it.", alt:"The 3D print request form."},
+    {text:"Wait for it, then pick it up.", detail:"It usually takes about [[N days]]. We’ll tell you it’s ready by [[method]] — or just ask at the desk after [[date]]. Pick it up within [[pickup window]]. Unclaimed prints: [[policy]].", alt:"The pickup shelf at the TechCentral desk."}
+  ]},
+  B:{eyebrow:"Your 3D printing plan", title:"Run it yourself", chip:"3D printing plan · Run it yourself", ctx:"planB", url:"cpl.org/tc/3d-self", say:"“I’d like to book a 3D printer. I’ve been checked out on them.”", facts:[{k:"Cost", v:"[[pricing]]"},{k:"Book", v:"[[how far ahead]]"},{k:"Bring", v:"Your sliced file on [[USB / SD card]]"}], steps:[
+    {text:"Make sure you’re ready to run it yourself.", detail:"This is for people who’ve been checked out on our printers: [[the actual qualification rule]]. If you haven’t been, staff will print it for you.", alt:"A staff member signing a patron off at a 3D printer."},
+    {text:"Book a printer [[booking method]].", detail:"[[How to book: online or at the desk, how far ahead, how long a booking lasts]].", alt:"The 3D printer booking screen."},
+    {text:"At the machine, follow reference mode.", detail:"One big step at a time, on your phone or on the card beside each printer. The nozzle and bed get hot [[temperatures]]. Don’t leave a print running unattended [[policy]].", alt:"A patron following the reference card beside a 3D printer.", ref:true},
+    {text:"If a print fails, check here.", detail:"Pick what you see.", alt:"", fail:true}
+  ]}
+};
+const FIX = {
+  lost:{label:"My job isn’t at the release station", title:"Can’t find your print? That happens. Let’s find it.", cause:"Your job may have gone to a different printer, or it was cleared after waiting [[how long jobs are held]].", url:"cpl.org/tc/lost", say:"“My print job isn’t at the release station.”", steps:["At the release station, log in with the same card or guest pass you used at the computer.","Check the other release screen too [[B&W vs. color stations]].","If it’s been longer than [[how long jobs are held]], print it again from the computer."]},
+  money:{label:"It says I don’t have enough money", title:"There isn’t enough on your card for this print. Here’s how to add more.", cause:"Prints are paid at the release station from [[card balance / payment method]].", url:"cpl.org/tc/pay", say:"“The release station says I don’t have enough money.”", steps:["Add money at [[add-value station or desk]].","You can pay with [[cash / card / coins]].","Go back to the release station. Your job is still waiting."]},
+  wrong:{label:"It printed the wrong thing, wrong size, or cut off", title:"Your print came out wrong. A setting usually fixes it.", cause:"The print window picked the wrong pages, paper size, or scale.", url:"cpl.org/tc/wrong", say:"“My print came out cut off or the wrong size.”", steps:["At the computer, open Print again and check the pages you want.","Set paper to Letter and choose “Fit to page.”","Ask staff about the misprint [[misprint refund policy]]."]},
+  card:{label:"My card or guest pass doesn’t work", title:"Your card or guest pass may need a quick check.", cause:"The number may be mistyped, or the pass may have expired [[guest pass rule]].", url:"cpl.org/tc/card", say:"“My card or guest pass isn’t working for printing.”", steps:["Type the number on the back of your card, with no spaces.","Guest passes last [[how long]]. Staff can make a new one.","Staff at the desk can check your card."]},
+  phone:{label:"I can’t print from my phone", title:"Printing from your phone works a little differently here.", cause:"[[Supported phone printing options]]. If there’s no direct option, email always works.", url:"cpl.org/tc/phone", say:"“I’m trying to print from my phone.”", steps:["Email the file to yourself from your phone.","Log in at any patron computer and open your email.","Print it there, then release it at the release station."]}
+};
+const FAILS = [
+  {id:"stick", label:"Not sticking to the bed", fix:"Stop the print. Clean the bed with [[cleaning method]] and check it’s level [[or ask staff]]. Then start again."},
+  {id:"spag", label:"Spaghetti mess", fix:"Stop the print. Let the nozzle cool before you clear the plastic. Usually the first layer didn’t stick, or the model needs supports. Staff can check your file."},
+  {id:"stop", label:"Stopped partway", fix:"Check whether the filament ran out or tangled. Don’t restart a half-finished print on your own [[policy]] — tell staff."},
+  {id:"smell", label:"Strange smell, smoke, or noise", safety:true}
+];
+const NOTIN = "I don’t have that in TechCentral’s guide, so I don’t want to guess. Staff at the desk can help — they’re [[to your left]].";
+const OFF = "I can only help with printing and 3D printing here. For anything else, staff can point you the right way.";
+const QA = {
+  print:[
+    {id:"p1", q:"How much will this cost?", kind:"answer", a:"Black and white is [[B&W price]] a page and color is [[color price]] a page. You pay at the release station when you print.", based:"Step: pay and print", step:"pay"},
+    {id:"p2", q:"What if my file won’t open?", kind:"answer", a:"Open [[word processor]] first, then use File → Open to find your file. If it still won’t open, staff can take a look.", based:"Step: open your file and print", step:"print"},
+    {id:"p3", q:"Can I print on cardstock?", kind:"notin"},
+    {id:"p4", q:"Can I renew my books here?", kind:"off"}
+  ],
+  fix:[
+    {id:"f1", q:"How long does my job wait?", kind:"answer", a:"Jobs wait at the release station for [[how long jobs are held]]. After that they’re cleared, and you’ll need to print again.", based:"Fix: job isn’t at the release station", to:{screen:"fx", sym:"lost"}},
+    {id:"f2", q:"Can I get a refund for a misprint?", kind:"judge", a:"Here’s the rule: “[[misprint refund policy]]”. Whether your print qualifies is a staff call. Show them the print at the desk."},
+    {id:"f3", q:"My print came out blank", kind:"notin"},
+    {id:"f4", q:"Where can I buy stamps?", kind:"off"}
+  ],
+  m1:[
+    {id:"m1", q:"What does “checked out on the printers” mean?", kind:"answer", a:"It means staff have watched you run a print and signed you off [[the actual qualification rule]]. Until then, staff print for you.", based:"Run it yourself", to:{screen:"m1"}},
+    {id:"m2", q:"Can I run it myself today?", kind:"judge", a:"Here’s the rule: “[[qualification rule]]”. Whether you can run it yourself is a staff call. Ask at the desk."},
+    {id:"m3", q:"Can I print a cosplay prop?", kind:"judge", a:"Here’s the rule: “[[prohibited items policy]]”. Whether your print fits is a staff call. Show them your file at the desk.", rules:true},
+    {id:"m4", q:"The printer smells like burning", kind:"safety"}
+  ],
+  planA:[
+    {id:"a1", q:"How long will it take?", kind:"answer", a:"Usually about [[N days]]. If you haven’t heard from us by then, ask at the desk.", based:"Step 4: wait, then pick it up", step:"3"},
+    {id:"a2", q:"What file types work?", kind:"answer", a:"We accept [[accepted file types]]. Most free model sites let you download one of these.", based:"Step 1: get a print-ready file", step:"0"},
+    {id:"a3", q:"Will my model fit?", kind:"judge", a:"Here’s the rule: “[[size and time limits]]”. Whether your model fits is a staff call. Show them your file at the desk.", rules:true},
+    {id:"a4", q:"Can you print my design in metal?", kind:"notin"}
+  ],
+  planB:[
+    {id:"b1", q:"How do I book a printer?", kind:"answer", a:"[[Booking method]]. Bookings last [[how long]].", based:"Step 2: book a printer", step:"1"},
+    {id:"b2", q:"The printer is making a grinding noise", kind:"safety"},
+    {id:"b3", q:"Can I leave while it prints?", kind:"answer", a:"No. [[Unattended printing policy]]. If you need to step away, tell staff first.", based:"Step 3: at the machine", step:"2"},
+    {id:"b4", q:"Can I use my own filament?", kind:"judge", a:"Here’s the rule: “[[materials policy]]”. Whether your filament can be used is a staff call. Ask at the desk."}
+  ]
+};
+const HEADS = {notin:"Not in the guide", judge:"That’s a staff call", off:"Outside this kiosk"};
+const FOOTS = {notin:"The assistant only answers from TechCentral’s guide.", judge:"The assistant can quote rules but never approves a print or rules on policy.", off:"This kiosk covers printing and 3D printing only."};
+const RULES = [
+  {k:"Not allowed", v:"[[prohibited items list]]"},
+  {k:"Cost", v:"[[pricing]]"},
+  {k:"Size", v:"Up to [[size limit]] — about the size of a coffee mug [[confirm]]"},
+  {k:"Time", v:"Prints under [[time limit]]"},
+  {k:"Materials", v:"[[filament types and colors]]"},
+  {k:"Pickup", v:"Within [[pickup window]]. Unclaimed prints: [[policy]]"},
+  {k:"Questions", v:"Staff at the desk [[to your left]]"}
+];
+const GALLERY = ["Patron print: [[a phone stand]]","Patron print: [[a replacement knob]]","Patron print: [[a name keychain]]","Patron print: [[a small planter]]","Patron print: [[a cosplay badge]]","Patron print: [[a cookie cutter]]"];
+const SCQ = ["Used a 3D printer before?","Done a TechCentral orientation or been signed off?","Know how to slice a file?"];
+const KEYROWS = ["QWERTYUIOP","ASDFGHJKL","ZXCVBNM?"];
+
+class Component extends DCLogic {
+  base(){
+    const key = String(this.props.start || "");
+    if (this._b && this._bk === key) return this._b;
+    const b = Object.assign({}, DEF, {added:[], hist:[]});
+    key.split("&").forEach((kv) => { if (!kv) return; const i = kv.indexOf("="); const k = kv.slice(0, i); const v = kv.slice(i + 1); b[k] = BOOL.indexOf(k) >= 0 ? v === "1" : v; });
+    this._b = b; this._bk = key; return b;
+  }
+  st(){ return Object.assign({}, this.base(), this.state || {}); }
+  set(p){ this.last = Date.now(); this.setState(p); }
+  go(p){ const s = this.st(); const snap = {screen:s.screen, plan:s.plan, sym:s.sym, step:s.step, takeFrom:s.takeFrom}; this.set(Object.assign({hist:s.hist.concat([snap]), ov:"", fail:"", took:"", rulesOpen:false}, p)); }
+  back(){ const s = this.st(); if (s.ov) { this.set({ov:""}); return; } const h = s.hist.slice(); const p = h.pop(); if (!p) { this.set({screen:"home", hist:[]}); return; } this.set(Object.assign({hist:h, fail:"", took:""}, p)); }
+  reset(){ this.set(Object.assign({}, DEF, {added:[], hist:[]})); }
+  componentDidMount(){ this.last = Date.now(); if (this.props.timers === "off") return; this.timer = setInterval(() => this.tick(), 1000); }
+  componentWillUnmount(){ if (this.timer) clearInterval(this.timer); }
+  tick(){
+    const s = this.st();
+    if (s.screen === "attract") { this.last = Date.now(); return; }
+    if (s.ov === "idle") { const c = Number(s.count) - 1; if (c <= 0) this.reset(); else this.setState({count:String(c)}); return; }
+    if (Date.now() - (this.last || 0) > IDLE_MS) this.setState({ov:"idle", prevOv:s.ov, count:"15"});
+  }
+  openAsk(ctx){ this.set({ov:"assistant", actx:ctx, aq:"", kb:false, typed:"", vote:""}); }
+  renderVals(){
+    const s = this.st();
+    const land = this.props.orientation === "landscape";
+    const plan = PLANS[s.plan] || PLANS.usb;
+    const fix = FIX[s.sym] || FIX.lost;
+    const stepN = Math.max(0, Math.min(plan.steps.length - 1, Number(s.step) || 0));
+    const sc = s.screen;
+    const overlay = s.ov === "idle" ? (s.prevOv || "") : s.ov;
+
+    const P = {eyebrow:plan.eyebrow, title:plan.title, count:plan.steps.length + " steps · tap any step for details",
+      facts:plan.facts.map((f) => ({k:f.k, vS:seg(f.v)})),
+      steps:plan.steps.map((st, i) => ({n:i + 1, textS:seg(st.text), alt:"Image slot: " + plain(st.alt || st.text), open:() => this.go({screen:"step", step:String(i)})}))};
+
+    const cur = plan.steps[stepN];
+    const failPick = FAILS.find((f) => f.id === s.fail);
+    const SD = {label:"Step " + (stepN + 1) + " of " + plan.steps.length + " · " + plan.title, progress:"Step " + (stepN + 1) + " of " + plan.steps.length,
+      textS:seg(cur.text), detailS:seg(cur.detail), alt:plain(cur.alt), notFail:!cur.fail, isFail:!!cur.fail, isRef:!!cur.ref, isRules:!!cur.rules,
+      hasNext:stepN < plan.steps.length - 1, isLast:stepN === plan.steps.length - 1,
+      next:() => this.set({step:String(stepN + 1), fail:""}),
+      fails:FAILS.map((f) => ({label:f.label, pressed:s.fail === f.id ? "true" : "false", style:s.fail === f.id ? "border-color: var(--brand); border-width: 3px" : "", pick:() => this.set({fail:f.id})})),
+      failSafety:!!(failPick && failPick.safety), failFix:!!(failPick && !failPick.safety), failFixS:seg(failPick && failPick.fix)};
+
+    const takeSrc = s.takeFrom === "fix" ? {name:"Fix · " + fix.label, url:fix.url, say:fix.say} : {name:plan.chip, url:plan.url, say:plan.say};
+    const T = Object.assign({}, takeSrc, {printed:s.took === "print", notPrinted:s.took !== "print", hasAdded:s.added.length > 0, added:s.added.map((q) => ({q:q}))});
+
+    const F = {label:fix.label, title:fix.title, causeS:seg(fix.cause), url:fix.url, steps:fix.steps.map((t, i) => ({n:i + 1, textS:seg(t)}))};
+
+    const pxList = Object.keys(FIX).map((k) => ({label:FIX[k].label, pick:() => this.go({screen:"fx", sym:k})})).concat([{label:"Something else", pick:() => this.go({screen:"fxother"})}]);
+
+    const scItems = SCQ.map((q, i) => { const key = "sc" + (i + 1); const v = s[key]; return {q:q, yOn:v === "y" ? "true" : "false", nOn:v === "n" ? "true" : "false", yCls:"segb" + (v === "y" ? " on" : ""), nCls:"segb" + (v === "n" ? " on" : ""), yes:() => this.set({[key]:"y"}), no:() => this.set({[key]:"n"})}; });
+    const scVals = [s.sc1, s.sc2, s.sc3];
+    const scSugg = scVals.some((v) => !v) ? "Answer all three for a suggestion. You still decide." : scVals.every((v) => v === "y") ? "Suggestion: Run it yourself could suit you. You decide." : "Suggestion: We print it for you is a good fit. You decide.";
+
+    const list = QA[s.actx] || QA.print;
+    let q = s.aq === "typed" ? {id:"typed", q:s.typed || "(your question)", kind:"notin"} : list.find((x) => x.id === s.aq);
+    let ans = null;
+    if (q) {
+      const kind = q.kind;
+      const text = kind === "notin" ? NOTIN : kind === "off" ? OFF : (q.a || "");
+      ans = {q:q.q, isAnswer:kind === "answer", isRefusal:kind === "notin" || kind === "judge" || kind === "off", isSafety:kind === "safety", head:HEADS[kind] || "", foot:FOOTS[kind] || "", textS:seg(text), based:q.based || "", hasRules:!!q.rules,
+        jump:() => { if (q.to) { this.go(q.to); return; } let idx = q.step; if (plan.idx && plan.idx[idx] !== undefined) idx = plan.idx[idx]; this.go({screen:"step", step:String(idx)}); }};
+    }
+    const added = q && s.added.indexOf(q.q) >= 0;
+    const ctxChip = s.actx === "fix" ? "Print trouble · " + (s.screen === "fxother" ? "Something else" : fix.label) : s.actx === "m1" ? "3D printing · Which way is right for you?" : plan.chip;
+    const keys = KEYROWS.map((r) => r.split("").map((k) => ({k:k, press:() => this.set({typed:(s.typed || "") + k})})));
+    const A = {chip:ctxChip, showNotice:!s.noticeSeen, showChips:!q && !s.kb, kb:!q && !!s.kb, typed:s.typed || "", keys:keys, chips:list.map((x) => ({q:x.q, pick:() => this.set({aq:x.id, noticeSeen:true, vote:""})})), hasAns:!!ans, ans:ans || {textS:[]},
+      upOn:s.vote === "up" ? "true" : "false", downOn:s.vote === "down" ? "true" : "false", upCls:"tbtn" + (s.vote === "up" ? " on" : ""), downCls:"tbtn" + (s.vote === "down" ? " on" : ""),
+      addOn:added ? "true" : "false", addCls:"tbtn" + (added ? " on" : ""), addLabel:added ? "Added to my plan" : "Add to my plan"};
+
+    const readMap = {home:"What brings you in? Four choices.", other:"Staff can help with that.", p0:"Where’s your file? Four choices.", plan:plan.title + ". Step 1: " + plain(plan.steps[0].text), step:"Step " + (stepN + 1) + ". " + plain(cur.text), take:"How do you want to take your plan?", px:"What happened? Six choices.", fx:fix.title, fxother:"Something else went wrong.", m0:"What you can make.", m1:"Which way is right for you? Two choices.", rules:"The rules, in plain words."};
+
+    return {
+      cls:"kiosk " + (land ? "landscape" : "portrait") + (s.hc ? " hc" : "") + (s.lg ? " lg" : ""),
+      W:land ? 1920 : 1080, H:land ? 1080 : 1920,
+      isAttract:sc === "attract", inSession:sc !== "attract",
+      sHome:sc === "home", sOther:sc === "other", sP0:sc === "p0", sPlan:sc === "plan", sStep:sc === "step", sTake:sc === "take", sPx:sc === "px", sFx:sc === "fx", sFxOther:sc === "fxother", sM0:sc === "m0", sM1:sc === "m1", sRules:sc === "rules",
+      showBack:sc !== "home", noBack:sc === "home",
+      P:P, SD:SD, T:T, F:F, A:A, pxList:pxList, scItems:scItems, scSugg:scSugg, scOpen:!!s.sc, scClosed:!s.sc,
+      rules:RULES.map((r) => ({k:r.k, vS:seg(r.v)})), rulesOpen:!!s.rulesOpen, rulesOpenS:s.rulesOpen ? "true" : "false", rulesLabel:s.rulesOpen ? "Hide the official policy" : "Read the official policy",
+      gallery:GALLERY.map(plain),
+      staffS:seg(STAFF), hoursS:seg(HOURS),
+      hasPrinter:this.props.printer !== false,
+      ovAssistant:overlay === "assistant", ovA11y:overlay === "a11y", ovStaff:overlay === "staff", ovIdle:s.ov === "idle",
+      count:String(s.count), countLabel:"seconds. Everything you chose will be erased.",
+      read:!!s.read, readText:readMap[sc] || "",
+      lgS:s.lg ? "true" : "false", hcS:s.hc ? "true" : "false", readS:s.read ? "true" : "false",
+      lgLabel:s.lg ? "On" : "Off", hcLabel:s.hc ? "On" : "Off", readLabel:s.read ? "On" : "Off",
+      start:() => this.set({screen:"home", hist:[]}),
+      toHome:() => this.go({screen:"home"}), toHomeFresh:() => this.set({screen:"home", hist:[], took:"", ov:""}),
+      toPrint:() => this.go({screen:"p0"}), toPx:() => this.go({screen:"px"}), to3d:() => this.go({screen:"m0"}), toOther:() => this.go({screen:"other"}),
+      srcPhone:() => this.go({screen:"plan", plan:"phone"}), srcUsb:() => this.go({screen:"plan", plan:"usb"}), srcEmail:() => this.go({screen:"plan", plan:"email"}), srcMake:() => this.go({screen:"plan", plan:"make"}),
+      toM1:() => this.go({screen:"m1"}), toRules:() => this.go({screen:"rules"}),
+      toPlanA:() => this.go({screen:"plan", plan:"A"}), toPlanB:() => this.go({screen:"plan", plan:"B"}),
+      toTakePlan:() => this.go({screen:"take", takeFrom:"plan"}), toTakeFix:() => this.go({screen:"take", takeFrom:"fix"}),
+      takePrint:() => this.set({took:"print"}),
+      toggleSc:() => this.set({sc:true}), toggleRules:() => this.set({rulesOpen:!s.rulesOpen}),
+      askPlan:() => this.openAsk(plan.ctx), askFix:() => this.openAsk("fix"), askM1:() => this.openAsk("m1"),
+      seeNotice:() => this.set({noticeSeen:true}),
+      openKb:() => this.set({kb:true, noticeSeen:true}), closeKb:() => this.set({kb:false}),
+      keySpace:() => this.set({typed:(s.typed || "") + " "}), keyDel:() => this.set({typed:(s.typed || "").slice(0, -1)}),
+      keyAsk:() => this.set({aq:"typed", kb:false}),
+      clearAns:() => this.set({aq:"", vote:"", kb:false}),
+      voteUp:() => this.set({vote:"up"}), voteDown:() => this.set({vote:"down"}),
+      addToPlan:() => { if (q && s.added.indexOf(q.q) < 0) this.set({added:s.added.concat([q.q])}); },
+      openStaff:() => this.set({ov:"staff"}), openA11y:() => this.set({ov:"a11y"}), closeOv:() => this.set({ov:""}),
+      toggleLg:() => this.set({lg:!s.lg}), toggleHc:() => this.set({hc:!s.hc}), toggleRead:() => this.set({read:!s.read}),
+      stillHere:() => this.set({ov:s.prevOv || "", count:"15"}),
+      back:() => this.back(), reset:() => this.reset()
+    };
+  }
+}
+</script>
+</body>
+</html>

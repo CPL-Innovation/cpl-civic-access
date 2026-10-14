@@ -1,0 +1,127 @@
+{
+  "_readme": "3D printing: the intro screen, both plans, Plan B failure options, the rules, the gallery, the self-check, and phone reference mode. The `smell` failure is safety-only and always shows the fixed safety message from assistant.json.",
+  "checkedDate": "[[date this file was checked|Oct 1, 2026]]",
+  "policyCheckedDate": "[[date the policy was checked|Sep 15, 2026]]",
+  "intro": {
+    "lead": "Most people bring a file and our staff print it for you. It usually takes [[turnaround|3 to 5 days]].",
+    "cost": "Cost: [[pricing|10¢ a gram, $1 minimum]]"
+  },
+  "gallery": [
+    "Patron print: [[gallery item 1|a phone stand]]",
+    "Patron print: [[gallery item 2|a replacement dishwasher knob]]",
+    "Patron print: [[gallery item 3|a name keychain]]",
+    "Patron print: [[gallery item 4|a small succulent planter]]",
+    "Patron print: [[gallery item 5|a cosplay badge]]",
+    "Patron print: [[gallery item 6|a cookie cutter]]"
+  ],
+  "wayB": "For people who’ve been checked out on our printers. [[the actual qualification rule|You’ll need the 3D printing orientation and one supervised print.]]",
+  "selfCheck": [
+    "Used a 3D printer before?",
+    "Done a TechCentral orientation or been signed off?",
+    "Know how to slice a file?"
+  ],
+  "plans": {
+    "A": {
+      "eyebrow": "Your 3D printing plan",
+      "title": "We print it for you",
+      "chip": "3D printing plan · We print it",
+      "ctx": "planA",
+      "url": "cpl.org/tc/3d",
+      "say": "“I’d like staff to 3D print a file for me.”",
+      "facts": [
+        { "k": "Cost", "v": "[[pricing|10¢ a gram, $1 minimum]]" },
+        { "k": "Ready in", "v": "About [[turnaround|3 to 5 days]]" },
+        { "k": "Bring", "v": "Your file on [[how to bring the file|a USB drive or by email]]" }
+      ],
+      "steps": [
+        {
+          "text": "Get a print-ready file.",
+          "detail": "Download a model from a trusted source such as [[trusted model sources|Printables or Thingiverse]], or bring one you made. We accept [[accepted file types|.STL, .OBJ, and .3MF files]].",
+          "alt": "A 3D model file open on a computer screen."
+        },
+        {
+          "text": "Check that it fits the rules.",
+          "detail": "It has to fit within [[size limit|5 × 5 × 5 inches]] — about the size of a coffee mug[[confirm the coffee-mug comparison|]] — and print in under [[time limit|6 hours]]. Some items aren’t allowed.",
+          "alt": "A coffee mug next to a finished print, showing the size limit.",
+          "rules": true
+        },
+        {
+          "text": "Submit it [[how and where to submit|at the TechCentral desk or online]].",
+          "detail": "[[how to submit|Bring it to the desk on a USB drive, or fill in the 3D print request form at cpl.org/3dprint]]. Staff check every file before printing it.",
+          "alt": "The 3D print request form."
+        },
+        {
+          "text": "Wait for it, then pick it up.",
+          "detail": "It usually takes about [[turnaround|3 to 5 days]]. We’ll tell you it’s ready by [[ready notice method|email or text]] — or just ask at the desk. Pick it up within [[pickup window|14 days]]. Unclaimed prints: [[unclaimed print policy|recycled after 14 days]].",
+          "alt": "The pickup shelf at the TechCentral desk."
+        }
+      ]
+    },
+    "B": {
+      "eyebrow": "Your 3D printing plan",
+      "title": "Run it yourself",
+      "chip": "3D printing plan · Run it yourself",
+      "ctx": "planB",
+      "url": "cpl.org/tc/3d-self",
+      "say": "“I’d like to book a 3D printer. I’ve been checked out on them.”",
+      "facts": [
+        { "k": "Cost", "v": "[[self-service pricing|10¢ a gram, paid at the desk]]" },
+        { "k": "Book", "v": "[[how far ahead to book|Up to 7 days ahead]]" },
+        { "k": "Bring", "v": "Your sliced file on [[file media|a USB drive or SD card]]" }
+      ],
+      "steps": [
+        {
+          "text": "Make sure you’re ready to run it yourself.",
+          "detail": "This is for people who’ve been checked out on our printers: [[the actual qualification rule|you’ve done the 3D printing orientation and one supervised print]]. If you haven’t been, staff will print it for you.",
+          "alt": "A staff member signing a patron off at a 3D printer."
+        },
+        {
+          "text": "Book a printer [[booking method|online or at the desk]].",
+          "detail": "[[how to book|Book at cpl.org/tc/book or at the desk, up to 7 days ahead. A booking lasts up to 3 hours.]]",
+          "alt": "The 3D printer booking screen."
+        },
+        {
+          "text": "At the machine, follow reference mode.",
+          "detail": "One big step at a time, on your phone or on the card beside each printer. The nozzle and bed get hot [[temperatures|— about 400°F and 140°F]]. Don’t leave a print running unattended [[unattended printing policy|— staff stop prints left alone]].",
+          "alt": "A patron following the reference card beside a 3D printer.",
+          "ref": true
+        },
+        {
+          "text": "If a print fails, check here.",
+          "detail": "Pick what you see.",
+          "alt": "",
+          "fail": true
+        }
+      ]
+    }
+  },
+  "fails": [
+    { "id": "stick", "label": "Not sticking to the bed", "fix": "Stop the print. Clean the bed with [[bed cleaning method|an alcohol wipe from the drawer]] and check it’s level [[who levels the bed|— or ask staff to level it]]. Then start again." },
+    { "id": "spag", "label": "Spaghetti mess", "fix": "Stop the print. Let the nozzle cool before you clear the plastic. Usually the first layer didn’t stick, or the model needs supports. Staff can check your file." },
+    { "id": "stop", "label": "Stopped partway", "fix": "Check whether the filament ran out or tangled. Don’t restart a half-finished print on your own [[restart policy|— restarts need a staff check]] — tell staff." },
+    { "id": "smell", "label": "Strange smell, smoke, or noise", "safety": true }
+  ],
+  "rules": [
+    { "k": "Not allowed", "v": "[[prohibited items list|Weapons or weapon parts, anything illegal, and replicas that could be mistaken for the real thing]]" },
+    { "k": "Cost", "v": "[[pricing|10¢ a gram, $1 minimum]]" },
+    { "k": "Size", "v": "Up to [[size limit|5 × 5 × 5 inches]] — about the size of a coffee mug[[confirm the coffee-mug comparison|]]" },
+    { "k": "Time", "v": "Prints under [[time limit|6 hours]]" },
+    { "k": "Materials", "v": "[[filament types and colors|PLA in 8 colors — ask to see the color board]]" },
+    { "k": "Pickup", "v": "Within [[pickup window|14 days]]. Unclaimed prints: [[unclaimed print policy|recycled after 14 days]]" },
+    { "k": "Questions", "v": "Staff at the desk [[desk direction, two or three words|to your left]]" }
+  ],
+  "policy": [
+    "[[official TechCentral 3D printing policy text, verbatim|SAMPLE POLICY TEXT — replace with the official policy, word for word.]]",
+    "[[policy paragraph 2|Cleveland Public Library offers 3D printing for personal, educational, and small-business use. The library may refuse any print request. Items that violate law or library policy, including weapons and weapon components, will not be printed.]]",
+    "[[policy paragraph 3|Patrons are responsible for the content of their files. Staff do not modify designs. Prints that fail because of a design problem are charged at the normal rate.]]"
+  ],
+  "refUrl": "cpl.org/tc/ref",
+  "refSteps": [
+    { "text": "Check the bed is clean and empty.", "alt": "An empty, clean print bed." },
+    { "text": "Load your file from [[file media|a USB drive or SD card]] on the printer’s screen.", "alt": "The printer’s screen showing the file list." },
+    { "text": "Check the filament: [[material|PLA]] loaded, with enough on the spool.", "alt": "A spool of filament on the printer’s holder." },
+    { "text": "Start the print and watch the first layer go down.", "alt": "The nozzle laying down the first layer.", "safety": "The nozzle and bed are hot [[temperatures|— about 400°F and 140°F]]. Don’t touch them." },
+    { "text": "Stay nearby while it prints.", "alt": "A patron seated next to the printer.", "safety": "Don’t leave a print running unattended [[unattended printing policy|— staff stop prints left alone]]." },
+    { "text": "When it’s done, wait [[cool-down time|10 minutes]] for the bed to cool, then remove your print.", "alt": "A finished print being lifted off the bed.", "safety": "Let the bed cool before you touch it." }
+  ]
+}

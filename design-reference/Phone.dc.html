@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Phone · Your printing plan</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0057B7}a:hover{color:#004591}
+.pp{font-family:'Work Sans',-apple-system,'Segoe UI',sans-serif;color:#002A5C;background:#FBFAF6;font-size:16px;line-height:1.45}
+.pp *{box-sizing:border-box}
+.pp button{font:inherit;color:inherit;cursor:pointer;margin:0}
+.pp p{margin:0}
+.ph{background:#E9E186;color:#002A5C;font-weight:600;padding:0 .2em;border:1px dashed #6B6416;border-radius:2px;font-size:.88em;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.pst{display:flex;align-items:flex-start;gap:12px;width:100%;text-align:left;padding:12px;background:#FFFFFF;border:2px solid #CBC4BC;border-radius:6px}
+.pst[aria-expanded="true"]{border-color:#0057B7}
+.psn{flex:none;width:28px;height:28px;border-radius:50%;background:#E9E186;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:15px}
+.pdet{display:flex;flex-direction:column;gap:8px;padding:4px 0 2px;font-size:14px;color:#505A69}
+.pslot{aspect-ratio:16/9;border:2px dashed #505A69;border-radius:6px;background:#F7F4ED;display:flex;align-items:center;justify-content:center;text-align:center;padding:10px;font-size:12px;color:#505A69}
+.pbtn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px;width:100%;border-radius:6px;border:2px solid #0057B7;font-weight:600;padding:8px 14px}
+.pchip{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%;min-height:44px;text-align:left;padding:8px 12px;border:2px solid #0057B7;border-radius:6px;background:#FFFFFF;color:#0057B7;font-weight:600;font-size:15px}
+</style>
+</helmet>
+<div class="pp" style="width: 375px; height: 812px; display: flex; flex-direction: column; overflow: hidden">
+<header style="flex: none; display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: #002A5C; color: #F7F4ED; font-size: 13px"><span><b>TechCentral</b> · Cleveland Public Library</span><span style="color: #E9E186; font-weight: 600">Your plan</span></header>
+<main style="flex: 1; overflow: auto; padding: 20px 16px 28px; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: #0057B7">Your printing plan</span>
+<h1 style="margin: 0; font-size: 28px; line-height: 1.1; font-weight: 700; letter-spacing: -.015em">Print from your USB drive</h1>
+<p style="font-size: 13px; color: #505A69">From the TechCentral kiosk. Nothing about you is saved.</p>
+</div>
+<dl style="margin: 0; display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 8px 12px; padding: 12px; background: #F7F4ED; border: 1px solid #CBC4BC; border-radius: 6px; font-size: 14px">
+<dt style="font-weight: 700">Cost</dt><dd style="margin: 0">B&amp;W <span class="ph">[PLACEHOLDER: price]</span> a page · color <span class="ph">[PLACEHOLDER: price]</span> a page</dd>
+<dt style="font-weight: 700">Job waits</dt><dd style="margin: 0"><span class="ph">[PLACEHOLDER: how long jobs are held]</span></dd>
+<dt style="font-weight: 700">Bring</dt><dd style="margin: 0">Your USB drive, plus a library card or guest pass</dd>
+</dl>
+<ol style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px">
+<li><button class="pst" onClick="{{t1}}" aria-expanded="{{e1}}"><span class="psn">1</span><span style="flex: 1; display: flex; flex-direction: column; gap: 6px"><span style="font-weight: 600">Sit at any patron computer and log in with <span class="ph">[PLACEHOLDER: library card / guest pass]</span>.</span><sc-if value="{{o1}}" hint-placeholder-val="{{true}}"><span class="pdet"><span>Any computer marked “Patron computer” works. Then plug your USB drive in <span class="ph">[PLACEHOLDER: port location]</span>.</span><span class="pslot" role="img" aria-label="A patron computer’s login screen, with the card-number box highlighted.">Image slot · alt: “A patron computer’s login screen, with the card-number box highlighted.”</span></span></sc-if></span></button></li>
+<li><button class="pst" onClick="{{t2}}" aria-expanded="{{e2}}"><span class="psn">2</span><span style="flex: 1; display: flex; flex-direction: column; gap: 6px"><span style="font-weight: 600">Open your file and choose Print → <span class="ph">[PLACEHOLDER: printer name]</span>.</span><sc-if value="{{o2}}" hint-placeholder-val="{{false}}"><span class="pdet"><span>Choose File, then Print. Pick <span class="ph">[PLACEHOLDER: B&amp;W printer name]</span> for black and white or <span class="ph">[PLACEHOLDER: color printer name]</span> for color.</span><span class="pslot" role="img" aria-label="The print window, with the printer list open.">Image slot · alt: “The print window, with the printer list open.”</span></span></sc-if></span></button></li>
+<li><button class="pst" onClick="{{t3}}" aria-expanded="{{e3}}"><span class="psn">3</span><span style="flex: 1; display: flex; flex-direction: column; gap: 6px"><span style="font-weight: 600">Go to the release station <span class="ph">[PLACEHOLDER: location]</span>.</span><sc-if value="{{o3}}" hint-placeholder-val="{{false}}"><span class="pdet"><span>Your job waits there, not at the printer. Look for the touchscreen next to the printers.</span><span class="pslot" role="img" aria-label="The release station: the screen to the right of the printers.">Image slot · alt: “The release station: the screen to the right of the printers.”</span></span></sc-if></span></button></li>
+<li><button class="pst" onClick="{{t4}}" aria-expanded="{{e4}}"><span class="psn">4</span><span style="flex: 1; display: flex; flex-direction: column; gap: 6px"><span style="font-weight: 600">Find your job, pay <span class="ph">[PLACEHOLDER: B&amp;W / color per page]</span>, and print.</span><sc-if value="{{o4}}" hint-placeholder-val="{{false}}"><span class="pdet"><span>Log in with the same card or guest pass. Tap your job, check the price, then tap Print. Pay with <span class="ph">[PLACEHOLDER: accepted payment]</span>.</span><span class="pslot" role="img" aria-label="The release station screen showing one waiting job and its price.">Image slot · alt: “The release station screen showing one waiting job and its price.”</span></span></sc-if></span></button></li>
+</ol>
+<sc-if value="{{askClosed}}" hint-placeholder-val="{{true}}">
+<button class="pbtn" style="background: #FFFFFF; color: #0057B7" onClick="{{openAsk}}">Ask about this plan</button>
+</sc-if>
+<sc-if value="{{askOpen}}" hint-placeholder-val="{{false}}">
+<section aria-label="Ask about this plan" style="display: flex; flex-direction: column; gap: 8px; padding: 14px; background: #FFFFFF; border: 2px solid #0057B7; border-radius: 6px">
+<div style="display: flex; justify-content: space-between; align-items: center"><b>Ask about this plan</b><button onClick="{{closeAsk}}" style="min-height: 44px; min-width: 44px; border: 0; background: none; font-weight: 600; color: #0057B7">Close</button></div>
+<span style="align-self: flex-start; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: #F7F4ED; border: 1px solid #CBC4BC">Printing plan · File on USB</span>
+<sc-if value="{{noAns}}" hint-placeholder-val="{{true}}">
+<button class="pchip" onClick="{{q1}}">How much will this cost?</button>
+<button class="pchip" onClick="{{q2}}">Can I print on cardstock?</button>
+<label style="font-size: 13px; color: #505A69; margin-top: 4px" for="pq">Or type a question</label>
+<input id="pq" type="text" placeholder="Type here" style="min-height: 44px; font: inherit; padding: 8px 12px; border: 2px solid #CBC4BC; border-radius: 6px">
+</sc-if>
+<sc-if value="{{a1}}" hint-placeholder-val="{{false}}">
+<p style="font-size: 13px; color: #505A69">You asked: “How much will this cost?”</p>
+<p>Black and white is <span class="ph">[PLACEHOLDER: B&amp;W price]</span> a page and color is <span class="ph">[PLACEHOLDER: color price]</span> a page. You pay at the release station when you print.</p>
+<button onClick="{{goStep4}}" style="align-self: flex-start; min-height: 44px; padding: 6px 12px; border: 2px solid #0057B7; background: none; border-radius: 6px; color: #0057B7; font-weight: 600; font-size: 14px">Based on: Step 4 · pay and print</button>
+<p style="font-size: 12px; color: #505A69">AI answer · from TechCentral’s guide · checked <span class="ph">[PLACEHOLDER: date]</span></p>
+</sc-if>
+<sc-if value="{{a2}}" hint-placeholder-val="{{false}}">
+<p style="font-size: 13px; color: #505A69">You asked: “Can I print on cardstock?”</p>
+<p>I don’t have that in TechCentral’s guide, so I don’t want to guess. Staff at the desk can help — they’re <span class="ph">[PLACEHOLDER: where]</span>.</p>
+</sc-if>
+<sc-if value="{{hasAns}}" hint-placeholder-val="{{false}}"><button onClick="{{clear}}" style="align-self: flex-start; min-height: 44px; border: 0; background: none; color: #0057B7; font-weight: 600; text-decoration: underline; padding: 0">Ask another question</button></sc-if>
+</section>
+</sc-if>
+<div style="display: flex; flex-direction: column; gap: 4px; padding: 14px; background: #002A5C; color: #F7F4ED; border-radius: 6px">
+<b>Stuck? Staff can sort it out.</b>
+<span style="font-size: 14px">Staff are at the TechCentral desk <span class="ph">[PLACEHOLDER: where, in words]</span>. Open today <span class="ph">[PLACEHOLDER: hours]</span>.</span>
+</div>
+<p style="font-size: 12px; color: #505A69">From TechCentral · checked <span class="ph">[PLACEHOLDER: date]</span> · <span class="ph">[PLACEHOLDER: short URL]</span></p>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":375,"height":812}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.state || {};
+    const open = s.open === undefined ? 1 : s.open;
+    const ans = s.ans || 0;
+    const t = (n) => () => this.setState({open: open === n ? 0 : n});
+    return {
+      o1: open === 1, o2: open === 2, o3: open === 3, o4: open === 4,
+      e1: open === 1 ? "true" : "false", e2: open === 2 ? "true" : "false", e3: open === 3 ? "true" : "false", e4: open === 4 ? "true" : "false",
+      t1: t(1), t2: t(2), t3: t(3), t4: t(4),
+      askOpen: !!s.ask, askClosed: !s.ask,
+      openAsk: () => this.setState({ask: true}), closeAsk: () => this.setState({ask: false, ans: 0}),
+      noAns: ans === 0, a1: ans === 1, a2: ans === 2, hasAns: ans !== 0,
+      q1: () => this.setState({ans: 1}), q2: () => this.setState({ans: 2}), clear: () => this.setState({ans: 0}),
+      goStep4: () => this.setState({open: 4, ask: false, ans: 0})
+    };
+  }
+}
+</script>
+</body>
+</html>

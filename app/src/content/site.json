@@ -1,0 +1,11 @@
+{
+  "_readme": "Shared strings. Text in [[what to verify|sample value]] is unverified: the sample shows on screen until staff replace the whole [[...]] with the real fact. Run `npm run placeholders` to list what's left.",
+  "checkedDate": "[[date this file was checked|Oct 1, 2026]]",
+  "staff": "Staff are at the desk [[where the desk is, from the kiosk|to your left, under the blue TechCentral sign]].",
+  "staffShort": "[[desk direction, two or three words|to your left]]",
+  "staffFromRelease": "[[desk direction from the release station|behind you, under the blue sign]]",
+  "hours": "Open today [[today's hours|from 9 to 7]].",
+  "slipFree": "Free.[[confirm the printed slip is free|]]",
+  "slipWhere": "[[where the slip comes out|from the slot below the screen]]",
+  "shortUrlNote": "[[real short URLs and QR codes|]]"
+}
