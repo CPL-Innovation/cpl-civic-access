@@ -13,7 +13,7 @@ npm run placeholders   # list every unverified [[...]] fact still in the content
 
 | Path | What |
 |---|---|
-| `/` | The kiosk. Scales to the window; orientation follows the window's shape. |
+| `/` | The kiosk. Portrait by default, scaled and centered in any window. |
 | `/tc/usb`, `/tc/phone`, `/tc/email`, `/tc/make`, `/tc/3d`, `/tc/3d-self` | Phone plan pages (the QR codes) |
 | `/tc/lost`, `/tc/pay`, `/tc/wrong`, `/tc/card`, `/tc/phone-help`, `/tc/fix` | Phone fix pages and the all-fixes page |
 | `/tc/ref` | Plan B reference mode at the printer |
@@ -24,7 +24,7 @@ npm run placeholders   # list every unverified [[...]] fact still in the content
 ## Flags
 
 Defaults live in `src/config.ts` (`hasPrinter`, `orientation`, `placeholders`, timeouts). URL overrides:
-`?orient=portrait|landscape` · `?printer=0` · `?ph=mock|tags|clean` · `?idle=10&countdown=8` · `?timers=off` · `?fit=0`
+`?orient=portrait|landscape|auto` · `?printer=0` · `?ph=mock|tags|clean` · `?idle=10&countdown=8` · `?timers=off` · `?fit=0`
 
 ## Content
 

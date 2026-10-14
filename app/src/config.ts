@@ -5,8 +5,8 @@
 const DEFAULTS = {
   /** Does this kiosk have a slip printer? false hides “Print it” on the takeaway screen. */
   hasPrinter: true,
-  /** 'auto' follows the screen's aspect ratio. */
-  orientation: 'auto' as 'auto' | 'portrait' | 'landscape',
+  /** Portrait by default; a wide browser shows the portrait kiosk centered. 'auto' follows the screen's shape. */
+  orientation: 'portrait' as 'auto' | 'portrait' | 'landscape',
   /** How unverified [[...]] facts render: 'mock' = sample value, lightly marked; 'tags' = [PLACEHOLDER: …]; 'clean' = sample value, unmarked. */
   placeholders: 'mock' as 'mock' | 'tags' | 'clean',
   idleSeconds: 50,
