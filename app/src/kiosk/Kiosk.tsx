@@ -8,7 +8,7 @@ import { answerSource, type Answer } from '../lib/assistant';
 import { Icon, type IconName } from '../lib/Icon';
 import { T, plain } from '../lib/ph';
 import { Qr } from '../lib/Qr';
-import { CplMark, CplPattern } from '../lib/CplMark';
+import { CplMark } from '../lib/CplMark';
 import { speech } from '../lib/speech';
 import './kiosk.css';
 
@@ -868,7 +868,7 @@ export default function Kiosk() {
 
         {s.screen === 'attract' && (
           <button className="attract" onClick={() => set({ screen: 'home', hist: [], dir: 'fwd' })}>
-            <span className="att-bg" aria-hidden="true"><CplPattern className="att-pattern" /></span>
+            <span className="att-bg" aria-hidden="true"><CplMark className="att-hero" /></span>
             <span className="att-top"><CplMark className="att-logo" /><span><b>TechCentral</b><span>Cleveland Public Library</span></span></span>
             <span className="att-mid">
               <span className="att-ics">

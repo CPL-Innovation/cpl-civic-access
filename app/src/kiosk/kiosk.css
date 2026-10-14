@@ -422,7 +422,6 @@ html,body{margin:0;height:100%}
 .att-bg{color:#FFFFFF;opacity:.055;
   -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 45%,transparent 92%);mask-image:linear-gradient(to bottom,#000 0%,#000 45%,transparent 92%)}
 .att-bg i{display:none}
-.att-pattern{position:absolute;top:-260px;left:-260px;width:calc(100% + 520px);height:calc(100% + 520px)}
 .att-top{display:flex;align-items:center;gap:.7em;font-size:.8em;letter-spacing:0;text-transform:none;color:#FFFFFF}
 .att-top>span{display:flex;flex-direction:column;line-height:1.15}
 .att-top b{font-size:1.15em;letter-spacing:-.01em}
@@ -434,8 +433,6 @@ html,body{margin:0;height:100%}
 .hc .att-bg{display:none}
 .hc .att-logo{color:#FFF200}
 @media (prefers-reduced-motion: no-preference){
-  .att-pattern{animation:patternDrift 90s linear infinite}
-  @keyframes patternDrift{to{transform:translate3d(260px,260px,0)}}
   .att-logo{animation:logoIn .9s var(--ease-out) backwards}
   @keyframes logoIn{from{opacity:0;transform:rotate(-45deg) scale(.8)}}
 }
@@ -445,3 +442,15 @@ html,body{margin:0;height:100%}
   .att-tap svg{animation:nudge 2.6s var(--ease-out) infinite}
   @keyframes nudge{0%,60%,100%{transform:none}30%{transform:translateX(.25em)}}
 }
+
+/* ---- Landing v4: one oversized mark in the negative space ---- */
+.att-bg{opacity:1;-webkit-mask-image:none;mask-image:none;color:#FFFFFF}
+.att-hero{position:absolute;width:118%;aspect-ratio:1;right:-52%;top:44%;opacity:.06}
+.landscape .att-hero{width:70%;right:-18%;top:6%}
+@media (prefers-reduced-motion: no-preference){
+  .att-hero{animation:heroIn 1.4s var(--ease-out) backwards,heroTurn 240s linear 1.4s infinite}
+  @keyframes heroIn{from{opacity:0;transform:rotate(-20deg) scale(.94)}}
+  @keyframes heroTurn{to{transform:rotate(360deg)}}
+}
+.att-hero{width:84%;right:-26%;top:-9%;opacity:.042}
+.landscape .att-hero{width:62%;right:-14%;top:-22%}
