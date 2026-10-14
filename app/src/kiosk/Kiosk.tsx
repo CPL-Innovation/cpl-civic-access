@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { config } from '../config';
 import {
   ASSIST, FAILS, FIX, FIXES, PLANS, PRINTING, SITE, THREED, checkedFor, pathOf,
@@ -24,7 +24,11 @@ interface S extends Snap {
   lg: boolean; hc: boolean; read: boolean;
   added: string[]; took: boolean;
   sc: boolean; scAns: YN[]; fail: string; rulesOpen: boolean;
+  /** Steps already opened this session, per plan ("usb:2"), shown as ticked. */
+  seen: string[];
   hist: Snap[]; count: number;
+  /** Which way the last navigation went: drives the screen transition. */
+  dir: 'fwd' | 'back' | 'none';
 }
 
 const fresh = (): S => ({
@@ -33,8 +37,8 @@ const fresh = (): S => ({
   actx: 'print', kb: false, typed: '', noticeSeen: false, asking: null, answer: null, vote: '',
   lg: false, hc: false, read: false,
   added: [], took: false,
-  sc: false, scAns: ['', '', ''], fail: '', rulesOpen: false,
-  hist: [], count: config.countdown,
+  sc: false, scAns: ['', '', ''], fail: '', rulesOpen: false, seen: [],
+  hist: [], count: config.countdown, dir: 'none',
 });
 const snap = (s: S): Snap => ({ screen: s.screen, plan: s.plan, sym: s.sym, step: s.step, takeFrom: s.takeFrom });
 
@@ -94,6 +98,24 @@ function ProtoLink({ href, children }: { href: string; children: React.ReactNode
   return <a className="proto" href={href} target="_blank" rel="noreferrer">{children}<Icon n="external" /></a>;
 }
 
+const reduceMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/** “Print my plan”: a short sending state, then where to pick it up. */
+function PrintStatus({ href }: { href: string }) {
+  const [done, setDone] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setDone(true), reduceMotion() ? 0 : 1500);
+    return () => clearTimeout(t);
+  }, []);
+  if (!done) return <span className="ok sending" role="status"><span className="pbar" aria-hidden="true"><i /></span>Sending to the printer…</span>;
+  return (
+    <>
+      <span className="ok fadeup" role="status"><Icon n="check" w={2.5} className="pop" /><span>Printing now. Take it <T s={SITE.slipWhere} />.</span></span>
+      <ProtoLink href={href}>Prototype: see the slip</ProtoLink>
+    </>
+  );
+}
+
 /* ---------- the kiosk ---------- */
 
 export default function Kiosk() {
@@ -108,18 +130,19 @@ export default function Kiosk() {
   const trigger = useRef<HTMLElement | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const mainRef = useRef<HTMLElement>(null);
+  const lastScroll = useRef(0);
 
   const set = useCallback((p: Partial<S> | ((s: S) => Partial<S>)) => {
     last.current = Date.now();
     setS((prev) => ({ ...prev, ...(typeof p === 'function' ? p(prev) : p) }));
   }, []);
-  const go = useCallback((p: Partial<S>) => set((prev) => ({ hist: [...prev.hist, snap(prev)], ov: '', fail: '', took: false, rulesOpen: false, ...p })), [set]);
+  const go = useCallback((p: Partial<S>) => set((prev) => ({ hist: [...prev.hist, snap(prev)], ov: '', fail: '', took: false, rulesOpen: false, dir: 'fwd', ...p })), [set]);
   const back = () => set((prev) => {
     if (prev.ov) return { ov: '' };
     const h = prev.hist.slice();
     const p = h.pop();
-    if (!p) return { screen: 'home', hist: [] };
-    return { ...p, hist: h, fail: '', took: false };
+    if (!p) return { screen: 'home', hist: [], dir: 'back' };
+    return { ...p, hist: h, fail: '', took: false, dir: 'back' };
   });
   const reset = useCallback(() => {
     askToken.current++;
@@ -186,6 +209,12 @@ export default function Kiosk() {
   const fix = FIX[s.sym];
   const stepN = Math.max(0, Math.min(plan.steps.length - 1, s.step));
   const cur = plan.steps[stepN];
+
+  useEffect(() => {
+    if (s.screen !== 'step') return;
+    const k = s.plan + ':' + s.step;
+    setS((p) => (p.seen.includes(k) ? p : { ...p, seen: [...p.seen, k] }));
+  }, [s.screen, s.plan, s.step]);
 
   /* ---------- assistant ---------- */
   const openAsk = (ctx: Ctx) => {
@@ -324,8 +353,8 @@ export default function Kiosk() {
             <ol className="steps">
               {plan.steps.map((st, i) => (
                 <li key={i}>
-                  <button className="step" onClick={() => go({ screen: 'step', step: i })}>
-                    <span className="sn" aria-label={`Step ${i + 1}`}>{i + 1}</span>
+                  <button className={'step' + (s.seen.includes(s.plan + ':' + i) ? ' seen' : '')} onClick={() => go({ screen: 'step', step: i })}>
+                    <span className="sn" aria-label={`Step ${i + 1}` + (s.seen.includes(s.plan + ':' + i) ? ', viewed' : '')}>{s.seen.includes(s.plan + ':' + i) ? <Icon n="check" w={3} /> : i + 1}</span>
                     <span className="st"><T s={st.text} /></span>
                     {st.fail
                       ? <span className="simg" aria-hidden="true"><Icon n="warn" w={1.75} /></span>
@@ -376,18 +405,21 @@ export default function Kiosk() {
                         onClick={() => set({ fail: f.id })} />
                     ))}
                   </div>
-                  {failPick?.safety && <SafetyBox />}
+                  {failPick?.safety && <div className="fadeup" key="safety"><SafetyBox /></div>}
                   {failPick && !failPick.safety && (
-                    <div className="ansbox" role="status"><p className="ans"><T s={failPick.fix} /></p><p className="tb">Still stuck? Staff can sort this out.</p></div>
+                    <div className="ansbox fadeup" role="status" key={failPick.id}><p className="ans"><T s={failPick.fix} /></p><p className="tb">Still stuck? Staff can sort this out.</p></div>
                   )}
                 </>
               )}
               {cur.rules && <button className="link" onClick={() => go({ screen: 'rules' })}>See the rules</button>}
+              <div className="prog" aria-hidden="true">
+                {plan.steps.map((_, i) => <span key={i} className={i < stepN ? 'done' : i === stepN ? 'cur' : ''}><i /></span>)}
+              </div>
               <span className="hint">Step {stepN + 1} of {plan.steps.length}</span>
               <div className="cta">
                 <div className="row2">
                   <button className="btn btn-s" onClick={back}><Icon n="left" />Back to plan</button>
-                  {!last && <button className="btn btn-p" onClick={() => set({ step: stepN + 1, fail: '' })}>Next step<Icon n="right" /></button>}
+                  {!last && <button className="btn btn-p" onClick={() => set({ step: stepN + 1, fail: '', dir: 'fwd' })}>Next step<Icon n="right" /></button>}
                   {last && <button className="btn btn-p" onClick={() => go({ screen: 'take', takeFrom: 'plan' })}>Take this with you</button>}
                 </div>
               </div>
@@ -419,8 +451,7 @@ export default function Kiosk() {
                       <span className="tb">A slip with your plan, the short link, and where staff are. <T s={SITE.slipFree} /></span>
                       {!s.took
                         ? <button className="btn btn-s" onClick={() => set({ took: true })}>Print my plan</button>
-                        : <span className="ok" role="status"><Icon n="check" w={2.5} /><span>Printing now. Take it <T s={SITE.slipWhere} />.</span></span>}
-                      {s.took && <ProtoLink href={slipHref}>Prototype: see the slip</ProtoLink>}
+                        : <PrintStatus href={slipHref} />}
                     </div>
                   </div>
                 )}
@@ -452,7 +483,7 @@ export default function Kiosk() {
               <div className="cta">
                 <p className="th" style={{ textAlign: 'center' }}>You’re all set.</p>
                 <div className="row2">
-                  <button className="btn btn-s" onClick={() => set({ screen: 'home', hist: [], took: false, ov: '' })}>Something else</button>
+                  <button className="btn btn-s" onClick={() => set({ screen: 'home', hist: [], took: false, ov: '', dir: 'back' })}>Something else</button>
                   <button className="btn btn-p" onClick={reset}><Icon n="check" w={2.5} />Done</button>
                 </div>
               </div>
@@ -594,7 +625,7 @@ export default function Kiosk() {
                       </span>
                     </div>
                   ))}
-                  <p className="sugg" role="status">{sugg}</p>
+                  <p className="sugg fadeup" role="status" key={sugg}>{sugg}</p>
                 </div>
               )}
               <button className="link" onClick={() => openAsk('m1')}>Not sure which? Ask.</button>
@@ -627,9 +658,42 @@ export default function Kiosk() {
     }
   })();
 
+  /* Screen exit: hold on to the outgoing screen briefly so it can slide away under the new one. */
+  const viewKey = s.screen + s.plan + s.sym + s.step + s.takeFrom;
+  const curView = useRef<{ key: string; el: React.ReactNode }>({ key: viewKey, el: scr });
+  const outgoing = useRef<{ key: string; el: React.ReactNode } | null>(null);
+  if (curView.current.key !== viewKey) outgoing.current = curView.current;
+  curView.current = { key: viewKey, el: scr };
+  const [leavingView, setLeavingView] = useState<{ key: string; el: React.ReactNode; dir: S['dir']; scroll: number } | null>(null);
+  useLayoutEffect(() => {
+    const o = outgoing.current;
+    outgoing.current = null;
+    if (!o || reduceMotion() || s.screen === 'attract' || s.dir === 'none') { setLeavingView(null); return; }
+    setLeavingView({ ...o, dir: s.dir, scroll: lastScroll.current });
+    const t = setTimeout(() => setLeavingView(null), 320);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewKey]);
+
   /* ---------- overlays ---------- */
 
   const shown: Ov = s.ov === 'idle' ? s.prevOv : s.ov;
+  const lastShown = useRef<Ov>('');
+  if (shown) lastShown.current = shown;
+  const [leaving, setLeaving] = useState(false);
+  const wasShown = useRef<Ov>(shown);
+  useEffect(() => {
+    const was = wasShown.current;
+    wasShown.current = shown;
+    if (was && !shown && !reduceMotion()) {
+      setLeaving(true);
+      const t = setTimeout(() => setLeaving(false), 220);
+      return () => clearTimeout(t);
+    }
+    setLeaving(false);
+  }, [shown]);
+  const ovKind: Ov = shown || (leaving ? lastShown.current : '');
+  const out = !shown && leaving ? ' out' : '';
 
   const ctxChip = s.actx === 'fix' ? 'Print trouble · ' + (s.screen === 'fxother' ? 'Something else' : fix.label)
     : s.actx === 'm1' ? '3D printing · Which way is right for you?' : plan.chip;
@@ -637,7 +701,7 @@ export default function Kiosk() {
   const a = s.answer;
   const added = !!a && s.added.includes(a.q);
   const assistant = (
-    <section className="sheet" role="dialog" aria-modal="true" aria-labelledby="ask-t">
+    <section className={'sheet' + out} role="dialog" aria-modal="true" aria-labelledby="ask-t">
       <div className="sh-h">
         <Icon n="chat" style={{ width: '1.2em', height: '1.2em', color: 'var(--brand)' }} />
         <span className="sh-t" id="ask-t">Ask about this</span>
@@ -681,13 +745,13 @@ export default function Kiosk() {
           </>
         )}
         {s.asking && (
-          <>
+          <div className="sh-stack fadeup">
             <p className="asked">You asked: “{s.asking}”</p>
             <p className="thinking" role="status"><span className="dots" aria-hidden="true"><i /><i /><i /></span>Checking TechCentral’s guide…</p>
-          </>
+          </div>
         )}
         {a && (
-          <>
+          <div className="sh-stack fadeup">
             <p className="asked">You asked: “{a.q}”</p>
             {a.kind === 'answer' && (
               <div className="ansbox" role="status">
@@ -718,7 +782,7 @@ export default function Kiosk() {
             )}
             {a.kind === 'safety' && <SafetyBox />}
             <button className="link" onClick={() => { askToken.current++; set({ answer: null, asking: null, vote: '', kb: false, typed: '' }); }}>Ask another question</button>
-          </>
+          </div>
         )}
       </div>
     </section>
@@ -732,7 +796,7 @@ export default function Kiosk() {
     </button>
   );
   const a11y = (
-    <section className="sheet short" role="dialog" aria-modal="true" aria-labelledby="a11y-t">
+    <section className={'sheet short' + out} role="dialog" aria-modal="true" aria-labelledby="a11y-t">
       <div className="sh-h"><span className="aa" aria-hidden="true">Aa</span><span className="sh-t" id="a11y-t">Accessibility options</span><button className="xbtn" onClick={closeOv}><Icon n="x" w={2.5} />Close</button></div>
       <div className="sh-b">
         {toggle('lg', 'Larger text', 'Makes everything on screen bigger.')}
@@ -744,7 +808,7 @@ export default function Kiosk() {
   );
 
   const staff = (
-    <section className="sheet short" role="dialog" aria-modal="true" aria-labelledby="staff-t">
+    <section className={'sheet short' + out} role="dialog" aria-modal="true" aria-labelledby="staff-t">
       <div className="sh-h"><Icon n="user" style={{ width: '1.2em', height: '1.2em', color: 'var(--brand)' }} /><span className="sh-t" id="staff-t">Staff can help</span><button className="xbtn" onClick={closeOv}><Icon n="x" w={2.5} />Close</button></div>
       <div className="sh-b">
         <p className="th" style={{ fontSize: '1.3em' }}><Staff /></p>
@@ -772,10 +836,11 @@ export default function Kiosk() {
         onPointerDownCapture={() => { last.current = Date.now(); }} onKeyDownCapture={onKeyDownCapture}>
 
         {s.screen === 'attract' && (
-          <button className="attract" onClick={() => set({ screen: 'home', hist: [] })}>
+          <button className="attract" onClick={() => set({ screen: 'home', hist: [], dir: 'fwd' })}>
+            <span className="att-bg" aria-hidden="true"><i /><i /><i /></span>
             <span className="att-top">TechCentral · Cleveland Public Library</span>
             <span className="att-mid">
-              <span className="att-ics"><Icon n="printer" w={1.5} /><Icon n="cube" w={1.5} /></span>
+              <span className="att-ics"><span><Icon n="printer" w={1.5} /></span><span><Icon n="cube" w={1.5} /></span></span>
               <span className="att-title">Printing &amp; 3D printing help</span>
               <span className="att-sub">A short plan for your visit, in under two minutes.</span>
             </span>
@@ -790,11 +855,16 @@ export default function Kiosk() {
           <div className="session">
             <header className="hdr"><span><b>TechCentral</b> · Cleveland Public Library</span><span>Printing &amp; 3D printing help</span></header>
             <div className="stage">
-              <main className="main" ref={mainRef} aria-hidden={shown ? true : undefined} inert={shown ? true : undefined}>{scr}</main>
-              {shown && <div className="scrim" onClick={closeOv} />}
-              {shown === 'assistant' && assistant}
-              {shown === 'a11y' && a11y}
-              {shown === 'staff' && staff}
+              <main className="main" ref={mainRef} onScroll={(e) => { lastScroll.current = e.currentTarget.scrollTop; }} aria-hidden={shown ? true : undefined} inert={shown ? true : undefined}>
+                {leavingView && (
+                  <div className={'view leave ' + leavingView.dir} key={leavingView.key + ':out'} aria-hidden="true" inert style={{ top: -leavingView.scroll }}>{leavingView.el}</div>
+                )}
+                <div className={'view ' + s.dir} key={viewKey}>{scr}</div>
+              </main>
+              {ovKind && <div className={'scrim' + out} onClick={out ? undefined : closeOv} />}
+              {ovKind === 'assistant' && <Fragment key="assistant">{assistant}</Fragment>}
+              {ovKind === 'a11y' && <Fragment key="a11y">{a11y}</Fragment>}
+              {ovKind === 'staff' && <Fragment key="staff">{staff}</Fragment>}
             </div>
             {s.read && (
               <div className="readbar" role="status">
@@ -821,7 +891,13 @@ export default function Kiosk() {
             <div className="idle-card">
               <p className="title" style={{ fontSize: '1.8em' }} id="idle-t">Still there?</p>
               <p className="lead" id="idle-d">We’ll start over for the next person in</p>
-              <p className="count" aria-live="polite">{s.count}</p>
+              <div className="ring">
+                <svg viewBox="0 0 100 100" aria-hidden="true">
+                  <circle cx="50" cy="50" r="45" className="ring-bg" />
+                  <circle cx="50" cy="50" r="45" className="ring-fg" style={{ strokeDashoffset: 283 * (1 - s.count / config.countdown) }} />
+                </svg>
+                <p className="count" aria-live="polite" key={s.count}>{s.count}</p>
+              </div>
               <p className="lead">seconds. Everything you chose will be erased.</p>
               <button className="btn btn-p" style={{ minHeight: '3.2em', fontSize: '1.15em' }} onClick={() => set((p) => ({ ov: p.prevOv, count: config.countdown }))}>I’m still here</button>
               <button className="btn btn-s" onClick={reset}>Start over now</button>

@@ -211,9 +211,180 @@ html,body{margin:0;height:100%}
 .added-list{display:flex;flex-direction:column;gap:.2em;margin:0;padding-left:1.1em}
 .added-list li{font-size:.68em}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-.devbadge{position:fixed;right:10px;bottom:10px;z-index:10;font:600 12px/1 'Work Sans',sans-serif;background:rgba(255,255,255,.92);color:#002A5C;padding:8px 10px;border-radius:6px;text-decoration:none;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.devbadge{position:fixed;right:10px;top:10px;opacity:.75;z-index:10;font:600 12px/1 'Work Sans',sans-serif;background:rgba(255,255,255,.92);color:#002A5C;padding:8px 10px;border-radius:6px;text-decoration:none;box-shadow:0 1px 4px rgba(0,0,0,.3)}
 .devbadge:hover{background:#fff}
 .landscape .gslot{aspect-ratio:4/3}
 /* 44px floor for small controls at landscape's 25px base. */
 .tbtn,.segb,.xbtn,.key,.based,.qchip,.readbar button{min-height:max(2.1em,44px)}
 .tbtn{min-width:44px}
+
+/* =========================================================
+   Motion & micro-interactions.
+   Short, calm, no flashing. Everything is opt-in via
+   prefers-reduced-motion: no-preference; with reduce, screens
+   and overlays simply appear.
+   ========================================================= */
+:root{--ease-out:cubic-bezier(.22,.8,.24,1);--ease-in:cubic-bezier(.5,0,.75,0);--ease-spring:cubic-bezier(.3,1.35,.5,1)}
+
+/* Screen wrapper (keyed per screen so it remounts and animates in). */
+.view{min-height:100%;display:flex;flex-direction:column}
+.view>.scr{flex:1}
+.sh-stack{display:flex;flex-direction:column;gap:.6em}
+
+/* Static affordances (apply with or without motion). */
+.ring{position:relative;width:5.4em;height:5.4em;margin:0 auto;display:flex;align-items:center;justify-content:center}
+.ring svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:5}
+.ring-bg{stroke:var(--line)}
+.ring-fg{stroke:var(--brand);stroke-linecap:round;stroke-dasharray:283}
+.ring .count{font-size:2.6em}
+.pbar{flex:none;width:4.2em;height:.42em;border-radius:999px;background:var(--line);overflow:hidden}
+.pbar i{display:block;height:100%;width:70%;background:var(--brand);border-radius:inherit}
+.scrim.out,.sheet.out{pointer-events:none}
+@media (hover:hover){
+  .choice:hover,.step:hover,.way:hover:not(.rec),.qchip:hover,.toggle:hover{border-color:var(--brand)}
+  .btn-p:hover{background:var(--brand-d);border-color:var(--brand-d)}
+  .btn-s:hover,.bbtn:not(.staff):hover,.xbtn:hover,.tbtn:not(.on):hover,.key:hover{background:var(--sunk)}
+}
+
+@media (prefers-reduced-motion: no-preference){
+  /* --- screen-to-screen: slide in the direction of travel, content rises in a short stagger --- */
+  .view.fwd{animation:viewFwd .38s var(--ease-out) backwards}
+  .view.back{animation:viewBack .38s var(--ease-out) backwards}
+  .view.none{animation:fadeIn .4s ease backwards}
+  @keyframes viewFwd{from{opacity:0;transform:translate3d(56px,0,0)}to{opacity:1;transform:none}}
+  @keyframes viewBack{from{opacity:0;transform:translate3d(-56px,0,0)}to{opacity:1;transform:none}}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  @keyframes rise{from{opacity:0;transform:translate3d(0,16px,0)}to{opacity:1;transform:none}}
+  @keyframes pop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.15);opacity:1}100%{transform:scale(1)}}
+
+  .view .info>*{animation:rise .42s var(--ease-out) backwards}
+  .view .info>:nth-child(2){animation-delay:.03s}
+  .view .info>:nth-child(n+3){animation-delay:.06s}
+  .view :is(.choices,.steps,.takes,.ways,.gal,.rules,.facts)>*{animation:rise .44s var(--ease-out) backwards}
+  .view :is(.choices,.steps,.takes,.ways,.gal,.rules,.facts)>:nth-child(1){animation-delay:.06s}
+  .view :is(.choices,.steps,.takes,.ways,.gal,.rules,.facts)>:nth-child(2){animation-delay:.1s}
+  .view :is(.choices,.steps,.takes,.ways,.gal,.rules,.facts)>:nth-child(3){animation-delay:.14s}
+  .view :is(.choices,.steps,.takes,.ways,.gal,.rules,.facts)>:nth-child(4){animation-delay:.18s}
+  .view :is(.choices,.steps,.takes,.ways,.gal,.rules,.facts)>:nth-child(5){animation-delay:.22s}
+  .view :is(.choices,.steps,.takes,.ways,.gal,.rules,.facts)>:nth-child(n+6){animation-delay:.26s}
+  .view .act>.cta,.view .act>.islot,.view .act>.card{animation:rise .44s .16s var(--ease-out) backwards}
+
+  /* things that appear in place */
+  .fadeup{animation:rise .34s var(--ease-out) backwards}
+  .pop{animation:pop .4s var(--ease-spring) backwards}
+
+  /* --- session chrome --- */
+  .attract{animation:fadeIn .5s ease backwards}
+  .session>.hdr,.session>.bar{animation:fadeIn .35s ease backwards}
+  .bar>.bbtn:first-child{animation:fadeIn .25s ease backwards}
+  .readbar{animation:rise .28s var(--ease-out) backwards}
+
+  /* --- overlays: sheet slides up (portrait) or in from the right (landscape) --- */
+  .scrim{animation:fadeIn .26s ease backwards}
+  .scrim.out{animation:fadeOut .2s ease both}
+  .sheet{animation:sheetUp .36s var(--ease-out) backwards}
+  .sheet.out{animation:sheetDown .2s var(--ease-in) forwards}
+  .landscape .sheet{animation-name:sheetIn}
+  .landscape .sheet.out{animation-name:sheetOut}
+  @keyframes fadeOut{to{opacity:0}}
+  @keyframes sheetUp{from{transform:translate3d(0,100%,0)}to{transform:none}}
+  @keyframes sheetDown{to{transform:translate3d(0,100%,0)}}
+  @keyframes sheetIn{from{transform:translate3d(100%,0,0)}to{transform:none}}
+  @keyframes sheetOut{to{transform:translate3d(100%,0,0)}}
+  .sheet .sh-b>*{animation:rise .36s .1s var(--ease-out) backwards}
+  .sheet .qlist>*{animation:rise .36s var(--ease-out) backwards}
+  .sheet .qlist>:nth-child(1){animation-delay:.12s}
+  .sheet .qlist>:nth-child(2){animation-delay:.16s}
+  .sheet .qlist>:nth-child(3){animation-delay:.2s}
+  .sheet .qlist>:nth-child(4){animation-delay:.24s}
+  .idle{animation:fadeIn .3s ease backwards}
+  .idle-card{animation:idleIn .42s var(--ease-spring) backwards}
+  @keyframes idleIn{from{opacity:0;transform:translate3d(0,24px,0) scale(.96)}to{opacity:1;transform:none}}
+  .ring-fg{transition:stroke-dashoffset 1s linear}
+  .ring .count{animation:tick .35s var(--ease-out) backwards}
+  @keyframes tick{from{opacity:.3;transform:scale(.88)}to{opacity:1;transform:none}}
+
+  /* --- touch feedback: everything tappable gives a little --- */
+  .kiosk button{transition:transform .14s var(--ease-out),background-color .2s ease,border-color .2s ease,color .2s ease,box-shadow .2s ease}
+  .kiosk button:active:not(:disabled){transform:scale(.975);transition-duration:.06s}
+  .kiosk .choice.big:active,.kiosk .way:active,.kiosk .attract:active{transform:scale(.99)}
+  .kiosk .key:active{transform:scale(.92)}
+  .choice:active,.step:active,.way:active{box-shadow:0 0 0 4px color-mix(in srgb,var(--brand) 18%,transparent)}
+  .chev,.wgo svg,.btn svg{transition:transform .2s var(--ease-out)}
+  .choice:active .chev,.step:active .chev,.way:active .wgo svg,.btn-p:active svg{transform:translateX(5px)}
+  @media (hover:hover){.choice:hover .chev,.step:hover .chev,.way:hover .wgo svg{transform:translateX(4px)}}
+
+  /* toggles, segments, votes */
+  .sw{transition:background-color .22s ease}
+  .sw::after{transition:left .26s var(--ease-spring),background-color .22s ease}
+  .tstate{transition:color .2s}
+  .segb.on,.tbtn.on svg{animation:pop .32s var(--ease-spring)}
+  .tbtn.on svg{display:inline-block}
+
+  /* print status */
+  .sending .pbar i{animation:fill 1.5s var(--ease-out) both}
+  @keyframes fill{from{width:0}to{width:100%}}
+
+  /* theme + text-size changes ease instead of snapping */
+  .kiosk{transition:font-size .28s var(--ease-out)}
+  .kiosk :is(.session,.hdr,.bar,.card,.fact,.sheet,.ansbox,.sc,.policy,.notice,.islot,.gslot,.typed){transition:background-color .3s ease,border-color .3s ease,color .3s ease}
+}
+
+/* ---- Round 2: crossfade, progress, viewed steps, ambient welcome ---- */
+.view.leave{position:absolute;left:0;right:0;min-height:100%;pointer-events:none;z-index:0}
+.view:not(.leave){position:relative;z-index:1}
+
+.prog{display:flex;gap:.3em}
+.prog span{flex:1;height:.32em;border-radius:999px;background:var(--line);overflow:hidden}
+.prog i{display:block;height:100%;width:0;background:var(--brand);border-radius:inherit}
+.prog .done i{width:100%}
+.prog .cur i{width:100%}
+
+.step.seen .sn{background:var(--brand);color:var(--onbrand)}
+.step.seen .sn svg{width:.9em;height:.9em}
+
+.attract{overflow:hidden}
+.attract>*:not(.att-bg){position:relative;z-index:1}
+.att-bg{position:absolute;inset:0;z-index:0;pointer-events:none}
+.att-bg i{position:absolute;border-radius:50%;filter:blur(60px);opacity:.5}
+.att-bg i:nth-child(1){width:60%;aspect-ratio:1;left:-15%;top:8%;background:#0057B7}
+.att-bg i:nth-child(2){width:50%;aspect-ratio:1;right:-12%;top:38%;background:#1d6fd1;opacity:.35}
+.att-bg i:nth-child(3){width:42%;aspect-ratio:1;left:20%;bottom:-8%;background:#E9E186;opacity:.14}
+.hc .att-bg{display:none}
+.att-ics>span{display:inline-flex}
+
+@media (prefers-reduced-motion: no-preference){
+  .view.leave.fwd{animation:leaveFwd .24s var(--ease-out) forwards}
+  .view.leave.back{animation:leaveBack .24s var(--ease-out) forwards}
+  @keyframes leaveFwd{to{opacity:0;transform:translate3d(-40px,0,0)}}
+  @keyframes leaveBack{to{opacity:0;transform:translate3d(40px,0,0)}}
+  .view.fwd,.view.back{animation-delay:.06s}
+
+  .prog .cur i{animation:progFill .5s .15s var(--ease-out) backwards}
+  @keyframes progFill{from{width:0}}
+  .step.seen .sn svg{animation:pop .4s .2s var(--ease-spring) backwards}
+
+  .att-bg i:nth-child(1){animation:drift1 18s ease-in-out infinite alternate}
+  .att-bg i:nth-child(2){animation:drift2 22s ease-in-out infinite alternate}
+  .att-bg i:nth-child(3){animation:drift3 26s ease-in-out infinite alternate}
+  @keyframes drift1{to{transform:translate3d(18%,12%,0) scale(1.1)}}
+  @keyframes drift2{to{transform:translate3d(-20%,-10%,0) scale(.92)}}
+  @keyframes drift3{to{transform:translate3d(14%,-18%,0) scale(1.15)}}
+  .att-ics>span{animation:bob 5s ease-in-out infinite}
+  .att-ics>span:nth-child(2){animation-delay:-2.5s}
+  @keyframes bob{50%{transform:translate3d(0,-10px,0)}}
+  .att-mid>*{animation:rise .7s var(--ease-out) backwards}
+  .att-mid>:nth-child(2){animation-delay:.08s}
+  .att-mid>:nth-child(3){animation-delay:.16s}
+  .attract:active{transform:none}
+  .attract:active .att-tap{transform:scale(.97)}
+  .att-tap{transition:transform .15s var(--ease-out)}
+  .typed .caret{animation:caret 1.1s steps(1) infinite}
+  @keyframes caret{50%{opacity:0}}
+}
+/* The outgoing screen is a fresh copy: freeze its contents so it leaves as one piece. */
+.view.leave *{animation:none!important;transition:none!important}
+/* Keep the screen views' z-index contained so overlays always sit on top. */
+.main{z-index:0}
+.scrim{z-index:1}.sheet{z-index:2}.idle{z-index:5}

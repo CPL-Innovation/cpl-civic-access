@@ -58,3 +58,28 @@ body{background:#E9E6DE}
 .pfixlist a{display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:52px;padding:10px 14px;border:2px solid #CBC4BC;border-radius:6px;background:#fff;text-decoration:none;color:#002A5C;font-weight:600}
 @media (prefers-reduced-motion: no-preference){.pthink{animation:pfade 1.2s ease-in-out infinite}}
 @keyframes pfade{50%{opacity:.4}}
+
+/* ---- Motion ---- */
+.pacc{display:grid;grid-template-rows:0fr}
+.pacc[data-open="true"]{grid-template-rows:1fr}
+.pacc>.pdet{overflow:hidden;min-height:0;padding-top:0;padding-bottom:0}
+.pacc[data-open="true"]>.pdet{padding-top:10px;padding-bottom:4px}
+@media (hover:hover){.pst:hover,.pchip:hover,.ropt:hover,.pfixlist a:hover{border-color:#0057B7}}
+@media (prefers-reduced-motion: no-preference){
+  .pacc{transition:grid-template-rows .32s cubic-bezier(.22,.8,.24,1)}
+  .pacc>.pdet{transition:padding .32s cubic-bezier(.22,.8,.24,1),opacity .25s ease;opacity:0}
+  .pacc[data-open="true"]>.pdet{opacity:1}
+  .pp button,.pfixlist a,.pbtn{transition:transform .14s cubic-bezier(.22,.8,.24,1),border-color .2s,background-color .2s}
+  .pp button:active:not(:disabled),.pfixlist a:active,.pbtn:active{transform:scale(.98)}
+  .fadeup{animation:prise .32s cubic-bezier(.22,.8,.24,1) backwards}
+  @keyframes prise{from{opacity:0;transform:translate3d(0,12px,0)}}
+  .rstep.fwd{animation:pin .34s cubic-bezier(.22,.8,.24,1) backwards}
+  .rstep.back{animation:pinb .34s cubic-bezier(.22,.8,.24,1) backwards}
+  @keyframes pin{from{opacity:0;transform:translate3d(32px,0,0)}}
+  @keyframes pinb{from{opacity:0;transform:translate3d(-32px,0,0)}}
+  [role="progressbar"]>span{transition:background-color .3s ease}
+  .p-main>*{animation:prise .4s cubic-bezier(.22,.8,.24,1) backwards}
+  .p-main>:nth-child(2){animation-delay:.05s}
+  .p-main>:nth-child(3){animation-delay:.1s}
+  .p-main>:nth-child(n+4){animation-delay:.15s}
+}

@@ -21,7 +21,7 @@ export function PhoneAsk({ ctx, chip, onJump, title = 'Ask about this plan' }: {
 
   if (!open) return <button className="pbtn" onClick={() => setOpen(true)}>{title}</button>;
   return (
-    <section className="pask" aria-label={title}>
+    <section className="pask fadeup" aria-label={title}>
       <div className="pask-h"><b>{title}</b><button className="plink" style={{ textDecoration: 'none', minWidth: 44 }} onClick={() => { clear(); setOpen(false); }}>Close</button></div>
       <span className="pctx">{chip}</span>
       {!a && !asking && (
@@ -37,7 +37,7 @@ export function PhoneAsk({ ctx, chip, onJump, title = 'Ask about this plan' }: {
       )}
       {asking && <><p className="pasked">You asked: “{asking}”</p><p className="pthink" role="status">Checking TechCentral’s guide…</p></>}
       {a && (
-        <>
+        <div className="fadeup" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <p className="pasked">You asked: “{a.q}”</p>
           {a.kind === 'safety' ? (
             <div className="psafety" role="alert"><b>{ASSIST.safety}</b><span style={{ fontSize: 14 }}>Staff are at the TechCentral desk.</span><span className="pai" style={{ color: 'inherit' }}>{ASSIST.safetyFoot}</span></div>
@@ -50,7 +50,7 @@ export function PhoneAsk({ ctx, chip, onJump, title = 'Ask about this plan' }: {
             </>
           )}
           <button className="plink" onClick={clear}>Ask another question</button>
-        </>
+        </div>
       )}
     </section>
   );

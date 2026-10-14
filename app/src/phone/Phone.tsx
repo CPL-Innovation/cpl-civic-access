@@ -52,7 +52,7 @@ export function PhonePlan({ id }: { id: PlanId }) {
               <span className="psn">{i + 1}</span>
               <span className="pbody"><span className="ptext"><T s={st.text} /></span></span>
             </button>
-            {open === i && (
+            <div className="pacc" data-open={open === i} inert={open !== i} aria-hidden={open !== i}>
               <div className="pdet">
                 <span><T s={st.detail} /></span>
                 {st.alt && <span className="pslot" role="img" aria-label={plain(st.alt)}>Image slot · alt: “{plain(st.alt)}”</span>}
@@ -66,7 +66,7 @@ export function PhonePlan({ id }: { id: PlanId }) {
                   </>
                 )}
               </div>
-            )}
+            </div>
           </li>
         ))}
       </ol>
@@ -122,6 +122,7 @@ export function PhoneFixes() {
 export function PhoneRef() {
   const steps = THREED.refSteps as { text: string; alt: string; safety?: string }[];
   const [i, setI] = useState(0);
+  const [dir, setDir] = useState<'fwd' | 'back'>('fwd');
   const [wrong, setWrong] = useState(false);
   const [fail, setFail] = useState('');
   const st = steps[i];
@@ -139,6 +140,7 @@ export function PhoneRef() {
             <div role="progressbar" aria-valuemin={1} aria-valuemax={steps.length} aria-valuenow={i + 1} aria-label={progress} style={{ display: 'flex', gap: 4 }}>
               {steps.map((_, k) => <span key={k} style={{ flex: 1, height: 6, borderRadius: 3, background: k <= i ? '#0057B7' : '#CBC4BC' }} />)}
             </div>
+            <div className={'rstep ' + dir} key={i} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <h1 className="p-title" style={{ fontSize: 30 }}><T s={st.text} /></h1>
             <div role="img" aria-label={plain(st.alt)} className="pslot" style={{ aspectRatio: '4/3', fontSize: 13 }}>Photo slot · alt: “{plain(st.alt)}”</div>
             {st.safety && (
@@ -146,6 +148,7 @@ export function PhoneRef() {
                 <span aria-hidden="true" style={{ fontWeight: 700 }}>⚠</span><p><b style={{ fontSize: 'inherit' }}>Safety:</b> <T s={st.safety} /></p>
               </div>
             )}
+            </div>
             <button className="ropt" onClick={() => { setWrong(true); setFail(''); }}>Something’s wrong<span aria-hidden="true">›</span></button>
           </>
         )}
@@ -153,9 +156,9 @@ export function PhoneRef() {
           <>
             <h1 className="p-title" style={{ fontSize: 26 }}>What do you see?</h1>
             {FAILS.map((x) => <button key={x.id} className="ropt" aria-pressed={fail === x.id} onClick={() => setFail(x.id)}>{x.label}<span aria-hidden="true">›</span></button>)}
-            {f?.safety && <div className="psafety" role="alert"><b>{ASSIST.safety}</b><span style={{ fontSize: 14 }}><T s={SITE.staff} /></span></div>}
+            {f?.safety && <div className="psafety fadeup" role="alert"><b>{ASSIST.safety}</b><span style={{ fontSize: 14 }}><T s={SITE.staff} /></span></div>}
             {f && !f.safety && (
-              <div className="pask" style={{ borderColor: '#CBC4BC' }} role="status"><p><T s={f.fix} /></p><p className="pai" style={{ fontSize: 14 }}>Still stuck? Staff can sort this out.</p></div>
+              <div className="pask fadeup" style={{ borderColor: '#CBC4BC' }} role="status" key={f.id}><p><T s={f.fix} /></p><p className="pai" style={{ fontSize: 14 }}>Still stuck? Staff can sort this out.</p></div>
             )}
             <button className="pbtn" onClick={() => { setWrong(false); setFail(''); }}>Back to the steps</button>
           </>
@@ -164,8 +167,8 @@ export function PhoneRef() {
       </main>
       {!wrong && (
         <nav className="rnav" aria-label="Steps">
-          <button style={{ background: '#fff', color: '#0057B7' }} onClick={() => setI(Math.max(0, i - 1))} disabled={i === 0}>Back</button>
-          <button style={{ background: '#0057B7', color: '#fff' }} onClick={() => { setI(last ? 0 : i + 1); window.scrollTo(0, 0); }}>{last ? 'Done' : 'Next step'}</button>
+          <button style={{ background: '#fff', color: '#0057B7' }} onClick={() => { setDir('back'); setI(Math.max(0, i - 1)); }} disabled={i === 0}>Back</button>
+          <button style={{ background: '#0057B7', color: '#fff' }} onClick={() => { setDir(last ? 'back' : 'fwd'); setI(last ? 0 : i + 1); window.scrollTo(0, 0); }}>{last ? 'Done' : 'Next step'}</button>
         </nav>
       )}
     </div>
