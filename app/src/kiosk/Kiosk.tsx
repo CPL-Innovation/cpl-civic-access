@@ -36,7 +36,7 @@ const fresh = (): S => ({
   screen: 'attract', plan: 'usb', sym: 'lost', step: 0, takeFrom: 'plan',
   ov: '', prevOv: '',
   actx: 'print', kb: false, typed: '', noticeSeen: false, asking: null, answer: null, vote: '',
-  lg: false, hc: false, read: false,
+  lg: config.largerText, hc: false, read: false,
   added: [], took: false,
   sc: false, scAns: ['', '', ''], fail: '', rulesOpen: false, seen: [],
   hist: [], count: config.countdown, dir: 'none',
@@ -833,7 +833,7 @@ export default function Kiosk() {
         {toggle('lg', 'Larger text', 'Makes everything on screen bigger.')}
         {toggle('hc', 'High contrast', 'White and yellow on black.')}
         {toggle('read', 'Read aloud', <>Reads each screen through the speaker or headphone jack. <T s="[[confirm audio hardware|]]" />{!speech.available && ' (Not available in this browser.)'}</>)}
-        <p className="hint">These turn off when you finish.</p>
+        <p className="hint">These go back to the defaults when you finish.</p>
       </div>
     </section>
   );
