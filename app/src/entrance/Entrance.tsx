@@ -16,7 +16,8 @@ import { Icon } from '../lib/Icon';
 import { T, plain } from '../lib/ph';
 import { speech } from '../lib/speech';
 import { API } from '../lib/api';
-import { useVoice, voiceSupported } from './useVoice';
+import { MicTest } from './MicTest';
+import { VOICE_DEBUG, useVoice } from './useVoice';
 import '../kiosk/kiosk.css';
 import './entrance.css';
 
@@ -31,6 +32,8 @@ const SCRIPT_OFF_HOURS = q.get('hours') === 'off';
 const REPLY_TIMEOUT_OVERRIDE_S = Number(q.get('replyTimeout')) || 0;
 /** Scripted demos: ?cards=chat behaves as if the console's “Place cards start a chat” setting were on. */
 const SCRIPT_CARDS_CHAT = q.get('cards') === 'chat';
+/** Setup aid: ?mictest=1 (or ?voicedebug=1) adds a record-and-replay microphone test to the Ask chat. */
+const MIC_TEST = q.get('mictest') === '1' || VOICE_DEBUG;
 
 /* ---------- types ---------- */
 type Screen = 'attract' | 'home' | 'entry' | 'techcentral';
@@ -91,6 +94,8 @@ export default function Entrance() {
   const [replyTimeoutS, setReplyTimeoutS] = useState(REPLY_TIMEOUT_OVERRIDE_S || 120);
   /** Console setting: place cards open the chat with their question (only while Ask is available). */
   const [cardsChat, setCardsChat] = useState(ASK_MODE === 'scripted' && SCRIPT_CARDS_CHAT);
+  /** The relay can transcribe recorded questions (OpenAI): the voice fallback for kiosks whose speech service fails. */
+  const [serverStt, setServerStt] = useState(false);
   const last = useRef(Date.now());
   const waitingRef = useRef(false);
   const trigger = useRef<HTMLElement | null>(null);
@@ -128,8 +133,8 @@ export default function Entrance() {
   }, []);
 
   /* Voice input: the transcript lands in the message field, unsent. */
-  const voice = useVoice();
-  waitingRef.current = s.waiting || voice.state === 'listening' || voice.state === 'review';
+  const voice = useVoice({ server: serverStt, session: s.session });
+  waitingRef.current = s.waiting || voice.state === 'listening' || voice.state === 'transcribing' || voice.state === 'review';
   voiceCancel.current = voice.cancel;
   useEffect(() => { if (s.ov !== 'ask') voice.cancel(); }, [s.ov, voice.cancel]);
 
@@ -175,6 +180,7 @@ export default function Entrance() {
       setAvail(!!d.available);
       if (d.replyTimeoutS && !REPLY_TIMEOUT_OVERRIDE_S) setReplyTimeoutS(d.replyTimeoutS);
       if (d.features) setCardsChat(!!d.features.cardsOpenChat);
+      setServerStt(!!d.transcribe);
     });
     es.addEventListener('reply', (e) => receive(JSON.parse((e as MessageEvent).data)));
     es.onerror = () => setAvail(false);
@@ -437,12 +443,15 @@ export default function Entrance() {
           <p className={'voice-text' + (voice.state === 'review' ? ' review' : '')} aria-live="polite">
             {voice.state === 'error' ? <span className="voice-err">{voice.error}</span>
               : voice.state === 'review' ? <span>“{voice.finalText}”</span>
+              : voice.state === 'transcribing' ? (voice.finalText ? <span>{voice.finalText}</span> : <span className="voice-wait">Turning that into words…</span>)
               : voice.finalText || voice.interim ? <>{voice.finalText}<span className="interim">{voice.finalText && voice.interim ? ' ' : ''}{voice.interim}</span></>
               : <span className="voice-wait">Listening…</span>}
           </p>
           <p className="voice-hint">{voice.state === 'error' ? 'Nothing was sent.'
             : voice.state === 'review' ? 'Is that right? Send it, or tap Retry to say it again.'
+            : voice.state === 'transcribing' ? 'One moment.'
             : 'Speak your question. Don’t say anything personal — this screen is public.'}</p>
+          {voice.debugLog.length > 0 && <pre className="voice-debug" aria-hidden="true">{voice.debugLog.join('\n')}</pre>}
           <div className="cta row2 voice-cta">
             {voice.state === 'review' ? (
               <>
@@ -454,7 +463,9 @@ export default function Entrance() {
                 <button className="btn btn-s" onClick={voice.cancel}><Icon n="x" />Cancel</button>
                 {voice.state === 'error'
                   ? <button className="btn btn-p" onClick={voice.start}><Icon n="mic" />Try again</button>
-                  : <button className="btn btn-p" onClick={voice.finish}><Icon n="check" />Done</button>}
+                  : voice.state === 'transcribing'
+                    ? <button className="btn btn-p" disabled><Icon n="check" />Done</button>
+                    : <button className="btn btn-p" onClick={voice.finish}><Icon n="check" />Done</button>}
               </>
             )}
           </div>
@@ -464,7 +475,7 @@ export default function Entrance() {
         {s.msgs.length === 0 && (
           <div className="chat-empty">
             <p className="th">Ask anything about the {ENT.place}.</p>
-            {avail && voiceSupported ? (
+            {avail && voice.available ? (
               <>
                 <p className="tb">The easiest way: tap the microphone and ask out loud. You can also pick a question below or type your own.</p>
                 {/* Voice first: it's easier than a touchscreen keyboard. */}
@@ -476,6 +487,7 @@ export default function Entrance() {
             ) : (
               <p className="tb">{avail ? 'Pick a question below, or type your own.' : ''}</p>
             )}
+            {MIC_TEST && <MicTest />}
             {avail && !s.kb && (
               <div className="empty-qs" role="group" aria-labelledby="empty-qs-h">
                 <span className="hint" id="empty-qs-h">Or pick a question</span>
@@ -544,7 +556,7 @@ export default function Entrance() {
                   ? <span className="chat-text">{s.typed}{s.kb && <span className="caret" key={s.typed.length} aria-hidden="true" />}</span>
                   : <>{s.kb && <span className="caret" aria-hidden="true" />}<span className="ph-hint">Type a question…</span></>}
               </button>
-              {voiceSupported && (
+              {voice.available && (
                 <button className="chat-mic" onClick={() => { set({ kb: false, noticeSeen: true }); voice.start(); }} aria-label="Speak your question"><Icon n="mic" /></button>
               )}
               <button className="chat-send" onClick={() => send(s.typed)} disabled={!s.typed.trim()} aria-label="Send"><Icon n="right" /><span>Send</span></button>

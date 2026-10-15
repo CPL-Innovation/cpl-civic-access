@@ -14,7 +14,10 @@
  * Run: node server/index.ts   (Node ≥ 22.18 runs TypeScript directly)
  * Env: RELAY_PORT or PORT (default 5181), REPLY_TIMEOUT_S (default 120),
  *      STAFF_PASSCODE (optional: set it to require a passcode for /staff; unset = open, no sign-in),
- *      ALLOWED_ORIGINS (comma-separated sites allowed to call /api from a browser, e.g. the Vercel URL; default *)
+ *      ALLOWED_ORIGINS (comma-separated sites allowed to call /api from a browser, e.g. the Vercel URL; default *),
+ *      ASK_DEFAULT=off, CARDS_CHAT_DEFAULT=off (start with those console switches off; both default to on),
+ *      OPENAI_API_KEY (turns on server-side voice transcription, the fallback for devices whose speech service fails),
+ *      OPENAI_TRANSCRIBE_MODEL (default gpt-4o-transcribe), TRANSCRIBE_FAKE=1 (canned transcript, for testing without a key)
  */
 import http from 'node:http';
 import fs from 'node:fs';
@@ -27,6 +30,13 @@ const PORT = Number(process.env.RELAY_PORT || process.env.PORT || 5181);
 const PASSCODE = process.env.STAFF_PASSCODE || ''; // empty = the console is open
 const REPLY_TIMEOUT_S = Number(process.env.REPLY_TIMEOUT_S || 120);
 const DIST = path.resolve(here, '../dist');
+/* Server-side voice transcription (fallback for kiosks whose built-in speech service fails, e.g. Android without Google's). */
+const OPENAI_KEY = process.env.OPENAI_API_KEY || '';
+const STT_MODEL = process.env.OPENAI_TRANSCRIBE_MODEL || 'gpt-4o-transcribe';
+const STT_FAKE = process.env.TRANSCRIBE_FAKE === '1';
+const sttAvailable = () => !!OPENAI_KEY || STT_FAKE;
+/** A short hint of the vocabulary patrons use at this kiosk improves accuracy on names. */
+const STT_PROMPT = 'A patron at the Cleveland Public Library Main Library entrance asks a short question: restrooms, library card, holds, returns, TechCentral, printing, 3D printing, study rooms.';
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '*').split(',').map((o) => o.trim().replace(/\/+$/, '')).filter(Boolean);
 
 interface Copy { id: string; label: string; text: string }
@@ -71,8 +81,9 @@ interface Features {
 const FEATURE_KEYS: (keyof Features)[] = ['cardsOpenChat'];
 
 const state = {
-  features: { cardsOpenChat: false } as Features,
-  askOn: false,
+  // Both start on. Ask still only shows while a console is connected (see availability()).
+  features: { cardsOpenChat: process.env.CARDS_CHAT_DEFAULT !== 'off' } as Features,
+  askOn: process.env.ASK_DEFAULT !== 'off',
   ignoreHours: false,
   threads: new Map<string, Thread>(),
   bySession: new Map<string, string>(),
@@ -129,7 +140,7 @@ setInterval(() => { if (JSON.stringify(availability()) !== lastAvail) pushAvaila
 // Keep proxies from closing quiet streams.
 setInterval(() => { for (const c of clients.values()) c.res.write(': ping\n\n'); }, 25_000);
 
-function kioskStatus() { return { ...availability(), replyTimeoutS: REPLY_TIMEOUT_S, features: state.features }; }
+function kioskStatus() { return { ...availability(), replyTimeoutS: REPLY_TIMEOUT_S, features: state.features, transcribe: sttAvailable() }; }
 
 function settings() {
   return {
@@ -268,6 +279,80 @@ async function api(req: http.IncomingMessage, res: http.ServerResponse, url: URL
     return json(res, 200, { ok: true });
   }
 
+  /* --- voice: transcribe a recorded question (audio in, words streamed out as NDJSON) --- */
+  if (p === '/api/transcribe' && req.method === 'POST') {
+    if (!sttAvailable()) return json(res, 503, { error: 'Transcription isn’t set up on this relay.' });
+    const parts: Buffer[] = [];
+    let size = 0;
+    for await (const c of req) {
+      size += (c as Buffer).length;
+      if (size > 8_000_000) return json(res, 413, { error: 'Recording too long.' });
+      parts.push(c as Buffer);
+    }
+    const audio = Buffer.concat(parts);
+    if (audio.length < 1000) return json(res, 400, { error: 'Empty recording.' });
+    const type = String(req.headers['content-type'] || 'audio/webm').split(';')[0];
+    res.writeHead(200, { 'content-type': 'application/x-ndjson', 'cache-control': 'no-store', 'x-accel-buffering': 'no' });
+    const out = (o: unknown) => res.write(JSON.stringify(o) + '\n');
+    // The audio is passed straight through; nothing is kept or logged here.
+    if (STT_FAKE) {
+      const words = 'Where are the restrooms'.split(' ');
+      for (let i = 0; i < words.length; i++) { await new Promise((r) => setTimeout(r, 180)); out({ delta: (i ? ' ' : '') + words[i] }); }
+      out({ done: words.join(' ') });
+      res.end();
+      return;
+    }
+    try {
+      const ext = type.includes('mp4') ? 'mp4' : type.includes('ogg') ? 'ogg' : type.includes('wav') ? 'wav' : type.includes('mpeg') ? 'mp3' : 'webm';
+      const fd = new FormData();
+      fd.append('file', new Blob([audio], { type }), 'question.' + ext);
+      fd.append('model', STT_MODEL);
+      fd.append('language', 'en');
+      fd.append('prompt', STT_PROMPT);
+      fd.append('stream', 'true');
+      const r = await fetch('https://api.openai.com/v1/audio/transcriptions', { method: 'POST', headers: { authorization: 'Bearer ' + OPENAI_KEY }, body: fd });
+      if (!r.ok || !r.body) {
+        console.error('transcribe: provider', r.status, (await r.text().catch(() => '')).slice(0, 300));
+        out({ error: 'provider ' + r.status });
+        res.end();
+        return;
+      }
+      if (!(r.headers.get('content-type') || '').includes('event-stream')) {
+        const j = (await r.json().catch(() => ({}))) as { text?: string };
+        out({ done: j.text || '' });
+        res.end();
+        return;
+      }
+      const reader = r.body.getReader();
+      const dec = new TextDecoder();
+      let buf = '';
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream: true });
+        let nl: number;
+        while ((nl = buf.indexOf('\n')) >= 0) {
+          const line = buf.slice(0, nl).trim();
+          buf = buf.slice(nl + 1);
+          if (!line.startsWith('data:')) continue;
+          const data = line.slice(5).trim();
+          if (!data || data === '[DONE]') continue;
+          try {
+            const ev = JSON.parse(data) as { type?: string; delta?: string; text?: string };
+            if (ev.type === 'transcript.text.delta' && ev.delta) out({ delta: ev.delta });
+            else if (ev.type === 'transcript.text.done') out({ done: ev.text || '' });
+          } catch { /* skip a malformed line */ }
+        }
+      }
+      res.end();
+    } catch (e) {
+      console.error('transcribe:', e);
+      out({ error: 'network' });
+      res.end();
+    }
+    return;
+  }
+
   /* --- staff side --- */
   if (p === '/api/staff/login' && req.method === 'POST') {
     const b = await body(req);
@@ -341,7 +426,7 @@ async function api(req: http.IncomingMessage, res: http.ServerResponse, url: URL
 
 /* ---------------- static (production) ---------------- */
 
-const TYPES: Record<string, string> = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.json': 'application/json', '.ico': 'image/x-icon', '.woff2': 'font/woff2' };
+const TYPES: Record<string, string> = { '.webmanifest': 'application/manifest+json', '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.json': 'application/json', '.ico': 'image/x-icon', '.woff2': 'font/woff2' };
 function serveStatic(req: http.IncomingMessage, res: http.ServerResponse, url: URL) {
   if (!fs.existsSync(DIST)) { res.writeHead(404); res.end('Run `npm run build` first, or use `npm run dev`.'); return; }
   let file = path.join(DIST, decodeURIComponent(url.pathname));

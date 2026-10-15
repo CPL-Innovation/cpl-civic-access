@@ -171,3 +171,13 @@
 }
 /* Review: what was heard, settled and dark, ready to send */
 .voice-text.review{color:var(--fg-1);font-weight:600}
+/* ?voicedebug=1 */
+.voice-debug{width:100%;max-height:9em;overflow:auto;margin:0;padding:var(--sp-2) var(--sp-3);background:#111;color:#9FE39A;font:400 .5em/1.45 ui-monospace,Menlo,monospace;text-align:left;border-radius:var(--radius-xs);white-space:pre-wrap}
+/* ?mictest=1: record-and-replay microphone check */
+.mictest{width:100%;display:flex;flex-direction:column;gap:var(--sp-2);padding:var(--sp-3);border:2px dashed var(--border-strong);border-radius:var(--radius-md);background:var(--bg-surface);text-align:left}
+.mictest-row{display:flex;align-items:center;gap:var(--sp-3)}
+.mictest-row .btn{flex:none}
+.mictest-meter{flex:1;height:.5em;border-radius:var(--radius-xs);background:var(--border-1);overflow:hidden}
+.mictest-meter span{display:block;height:100%;width:0;background:var(--cpl-ivy);transition:width 80ms linear}
+.mictest-audio{width:100%}
+.mictest-err{font-size:var(--fs-xs);color:var(--fg-1);font-weight:600}

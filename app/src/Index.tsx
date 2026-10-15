@@ -30,6 +30,7 @@ export default function Index() {
         <h2 style={h2}>Library assistant console</h2>
         <ul>
           <L href="/staff" note="open, no sign-in (set STAFF_PASSCODE on the relay to require one)">Console (/staff)</L>
+          <L href="/mictest" note="record five seconds and play it back: checks a kiosk's microphone">Microphone test (/mictest)</L>
         </ul>
 
         <h2 style={h2}>TechCentral prototype (📌 pinned, unchanged)</h2>
