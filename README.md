@@ -149,6 +149,19 @@ The kiosks also carry two labelled departures, pending the design-system revisio
 - `?timers=off`
 - `?fit=0`
 
+## Deployment
+
+| Where | What runs there | URL |
+|---|---|---|
+| **Railway** (project `cpl-civic-access`, service `relay`) | The whole app: the relay serves the built pages **and** `/api`, so live answering works | https://relay-production-1068.up.railway.app |
+| **Vercel** | The pages only (static). Talks to the Railway relay when built with `VITE_API_BASE` | https://cpl-civic-access.vercel.app |
+
+**Railway** builds from `app/` using `app/railway.json`: Railpack, `npm ci --include=dev && npm run build`, `npm start`, health check `/api/health`, **one replica**. Conversations live in memory, so there must be exactly one instance, and a redeploy or restart erases them.
+- **Variables:** `ALLOWED_ORIGINS=https://cpl-civic-access.vercel.app` (CORS for the Vercel pages). Set `STAFF_PASSCODE` to lock `/staff`; without it, anyone with the URL can answer as the library assistant.
+- **Redeploy from your machine:** `cd app && railway up --service relay`. Or connect the GitHub repo to the service in Railway's dashboard (root directory `app`) for automatic deploys.
+
+**Vercel** serves `app/dist` with `app/vercel.json`, which sends every page path to `index.html`. For live answering on the Vercel URL, set the environment variable `VITE_API_BASE=https://relay-production-1068.up.railway.app` in the Vercel project and redeploy. Without it, the Vercel pages can't reach a relay, so Ask stays hidden.
+
 ## Known gaps
 
 The open items for Cut 2 (the two-week patron run) are tracked in `entrance-kiosk/BUILD-entrance-kiosk.md`. In short:

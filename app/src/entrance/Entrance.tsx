@@ -15,6 +15,7 @@ import { CplMark } from '../lib/CplMark';
 import { Icon } from '../lib/Icon';
 import { T, plain } from '../lib/ph';
 import { speech } from '../lib/speech';
+import { API } from '../lib/api';
 import { useVoice, voiceSupported } from './useVoice';
 import '../kiosk/kiosk.css';
 import './entrance.css';
@@ -74,7 +75,7 @@ const TC_LINK = (start: 'p0' | 'm0') => {
 };
 
 function post(url: string, data: unknown) {
-  return fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(data) });
+  return fetch(API + url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(data) });
 }
 
 /* ---------- the kiosk ---------- */
@@ -114,7 +115,7 @@ export default function Entrance() {
   const reset = useCallback(() => {
     setS((prev) => {
       if (prev.session && ASK_MODE === 'live' && prev.msgs.length) {
-        navigator.sendBeacon?.('/api/kiosk/end', JSON.stringify({ session: prev.session, reason: 'reset' }));
+        navigator.sendBeacon?.(API + '/api/kiosk/end', JSON.stringify({ session: prev.session, reason: 'reset' }));
       }
       return fresh();
     });
@@ -137,7 +138,7 @@ export default function Entrance() {
   sessionRef.current = s.msgs.length ? s.session : null;
   useEffect(() => {
     if (ASK_MODE !== 'live') return;
-    const bye = () => { if (sessionRef.current) navigator.sendBeacon?.('/api/kiosk/end', JSON.stringify({ session: sessionRef.current, reason: 'left the page' })); };
+    const bye = () => { if (sessionRef.current) navigator.sendBeacon?.(API + '/api/kiosk/end', JSON.stringify({ session: sessionRef.current, reason: 'left the page' })); };
     window.addEventListener('pagehide', bye);
     return () => window.removeEventListener('pagehide', bye);
   }, []);
@@ -152,7 +153,7 @@ export default function Entrance() {
         if (prev.ov === 'idle') {
           const c = prev.count - 1;
           if (c <= 0) {
-            if (prev.session && ASK_MODE === 'live' && prev.msgs.length) navigator.sendBeacon?.('/api/kiosk/end', JSON.stringify({ session: prev.session, reason: 'timeout' }));
+            if (prev.session && ASK_MODE === 'live' && prev.msgs.length) navigator.sendBeacon?.(API + '/api/kiosk/end', JSON.stringify({ session: prev.session, reason: 'timeout' }));
             last.current = Date.now();
             return fresh();
           }
@@ -168,7 +169,7 @@ export default function Entrance() {
   /* The live relay: one stream per kiosk session. */
   useEffect(() => {
     if (ASK_MODE !== 'live' || !s.session) { if (ASK_MODE === 'live') setAvail(false); return; }
-    const es = new EventSource(`/api/kiosk/stream?kiosk=${encodeURIComponent(KIOSK_ID)}&session=${encodeURIComponent(s.session)}`);
+    const es = new EventSource(API + `/api/kiosk/stream?kiosk=${encodeURIComponent(KIOSK_ID)}&session=${encodeURIComponent(s.session)}`);
     es.addEventListener('status', (e) => {
       const d = JSON.parse((e as MessageEvent).data);
       setAvail(!!d.available);

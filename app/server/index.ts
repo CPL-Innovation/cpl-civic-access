@@ -13,7 +13,8 @@
  *
  * Run: node server/index.ts   (Node ≥ 22.18 runs TypeScript directly)
  * Env: RELAY_PORT or PORT (default 5181), REPLY_TIMEOUT_S (default 120),
- *      STAFF_PASSCODE (optional: set it to require a passcode for /staff; unset = open, no sign-in)
+ *      STAFF_PASSCODE (optional: set it to require a passcode for /staff; unset = open, no sign-in),
+ *      ALLOWED_ORIGINS (comma-separated sites allowed to call /api from a browser, e.g. the Vercel URL; default *)
  */
 import http from 'node:http';
 import fs from 'node:fs';
@@ -26,6 +27,7 @@ const PORT = Number(process.env.RELAY_PORT || process.env.PORT || 5181);
 const PASSCODE = process.env.STAFF_PASSCODE || ''; // empty = the console is open
 const REPLY_TIMEOUT_S = Number(process.env.REPLY_TIMEOUT_S || 120);
 const DIST = path.resolve(here, '../dist');
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '*').split(',').map((o) => o.trim().replace(/\/+$/, '')).filter(Boolean);
 
 interface Copy { id: string; label: string; text: string }
 interface EntranceContent {
@@ -348,9 +350,23 @@ function serveStatic(req: http.IncomingMessage, res: http.ServerResponse, url: U
   fs.createReadStream(file).pipe(res);
 }
 
+/** CORS: lets pages hosted elsewhere (Vercel) reach the relay. No cookies are used, so no credentials mode. */
+function cors(req: http.IncomingMessage, res: http.ServerResponse) {
+  const origin = String(req.headers.origin || '');
+  if (!origin) return;
+  if (ALLOWED_ORIGINS.includes('*')) res.setHeader('access-control-allow-origin', '*');
+  else if (ALLOWED_ORIGINS.includes(origin)) { res.setHeader('access-control-allow-origin', origin); res.setHeader('vary', 'origin'); }
+  res.setHeader('access-control-allow-methods', 'GET, POST, OPTIONS');
+  res.setHeader('access-control-allow-headers', 'content-type, x-staff-token');
+  res.setHeader('access-control-max-age', '600');
+}
+
 http.createServer((req, res) => {
   const url = new URL(req.url || '/', 'http://localhost');
   if (url.pathname.startsWith('/api/')) {
+    cors(req, res);
+    if (req.method === 'OPTIONS') { res.writeHead(204); res.end(); return; }
+    if (url.pathname === '/api/health') { json(res, 200, { ok: true, uptime_s: Math.round(process.uptime()) }); return; }
     api(req, res, url).catch((e) => { console.error(e); if (!res.headersSent) json(res, 500, { error: 'server error' }); });
   } else serveStatic(req, res, url);
 }).listen(PORT, () => {
