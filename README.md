@@ -51,8 +51,6 @@ app/
   src/lib/                        Shared: placeholder rendering, icons, CPL mark, QR, speech
   CPL_TheCenter_icon.svg          The CPL mark
 design-reference/                 The original design-canvas mockups (TechCentral)
-DESIGN-SYSTEM-REVISION-*.md       Prompts sent to revise the CPL Design System's Service mode
-HANDOFF.md, CLAUDE-CODE-PROMPT.md The original TechCentral handoff (historical)
 ```
 
 `app/CPL-Design-System.html` is the CPL Design System reference. It's git-ignored, so get it from the design team.

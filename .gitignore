@@ -3,3 +3,8 @@ dist/
 .DS_Store
 *.tsbuildinfo
 app/CPL-Design-System.html
+
+# Working notes kept locally, not on GitHub
+CLAUDE-CODE-PROMPT.md
+HANDOFF.md
+DESIGN-SYSTEM-REVISION-*.md
