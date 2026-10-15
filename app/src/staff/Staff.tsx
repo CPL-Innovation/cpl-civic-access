@@ -19,7 +19,7 @@ interface Draft { status: 'drafting' | 'ready' | 'error'; forMessage: string; mo
 interface Thread { id: string; kiosk: string; context: string; startedAt: number; updatedAt: number; status: 'waiting' | 'answered' | 'timedout' | 'handed' | 'closed'; open: boolean; closedReason?: string; urgent: boolean; bot: boolean; messages: Msg[]; draft?: Draft }
 interface ModelChoice { id: string; label: string; note: string }
 interface DraftSettings { on: boolean; model: string; available: boolean; models: ModelChoice[] }
-interface Features { cardsOpenChat: boolean; showIndex?: boolean; voiceEngine?: 'live' | 'server' | 'browser' }
+interface Features { cardsOpenChat: boolean; showIndex?: boolean; showSources?: boolean; voiceEngine?: 'live' | 'server' | 'browser' }
 interface Settings { drafts?: DraftSettings; passcodeRequired?: boolean; transcribe?: boolean; features?: Features; askOn: boolean; ignoreHours: boolean; hoursSet: boolean; insideHours: boolean; endDate: string | null; kiosksOnline: number; replyTimeoutS: number; available: boolean; reason: string }
 interface Copy { id: string; label: string; text: string }
 interface Content { locked: { bot: Copy; emergency: Copy }; saved: Copy[]; directory: { id: string; name: string }[] }
@@ -284,6 +284,18 @@ function SettingsPanel({ features, askAvailable, transcribe, drafts, onChange, o
 
         <section className="st-setting">
           <div className="st-setting-text">
+            <h3>Source and checked date on replies</h3>
+            <p>Under each reply on the kiosk: the line “From the Main Library guide · checked …” and the “Based on” chip that opens the place’s info screen. Hide them for a cleaner chat.</p>
+            <p className="st-hint">You still tag a source on every answer here; it goes in the log either way.</p>
+          </div>
+          <button className={'st-toggle light' + (!!features.showSources ? ' on' : '')} role="switch" aria-checked={!!features.showSources}
+            aria-label="Source and checked date on replies" onClick={() => onChange({ showSources: !features.showSources })}>
+            <span className="st-sw" aria-hidden="true" /><b>{!!features.showSources ? 'Shown' : 'Hidden'}</b>
+          </button>
+        </section>
+
+        <section className="st-setting">
+          <div className="st-setting-text">
             <h3>Prototype index link</h3>
             <p>The small “Prototype index” link in the kiosk’s bottom corner, which opens the list of every page and demo flag. Show it for demos; hide it on a kiosk patrons use.</p>
           </div>
@@ -412,30 +424,27 @@ function Conversation({ thread, content, settings, now, api }: { thread: Thread;
             <DraftCard draft={draft} modelName={modelName} busy={busy} tagged={tagged}
               onUse={useDraft} onSend={sendDraft} onRedraft={redraft} />
           )}
-          <div className="st-locked">
-            <span className="st-label">Locked answers — one tap, can’t be edited</span>
-            <div className="st-row">
-              <button className={'st-btn lock' + (thread.bot ? ' hot' : '')} disabled={busy} onClick={() => reply({ lockedId: content.locked.bot.id })}><Icon n="user" />Send: “{content.locked.bot.text}”</button>
-              <button className={'st-btn lock danger' + (thread.urgent ? ' hot' : '')} disabled={busy} onClick={() => reply({ lockedId: content.locked.emergency.id })}><Icon n="warn" />Send the emergency message</button>
-            </div>
+          <div className="st-quick" role="toolbar" aria-label="Quick replies">
+            <button className={'st-chip lock' + (thread.bot ? ' hot' : '')} disabled={busy} onClick={() => reply({ lockedId: content.locked.bot.id })}
+              title={`Locked: sends “${content.locked.bot.text}” as is`}><Icon n="user" />I’m a person</button>
+            <button className={'st-chip lock danger' + (thread.urgent ? ' hot' : '')} disabled={busy} onClick={() => reply({ lockedId: content.locked.emergency.id })}
+              title="Locked: sends the emergency message as is"><Icon n="warn" />Emergency</button>
+            <span className="st-quick-sep" aria-hidden="true" />
+            {content.saved.map((c) => <button key={c.id} className="st-chip" title={c.text} onClick={() => { setText(c.text); boxRef.current?.focus(); }}>{c.label}</button>)}
+            <button className="st-chip handoff" disabled={busy} onClick={() => reply({ text: content.saved.find((c) => c.id === 'desk')?.text, source: { kind: 'none' }, handoff: 'yes' })}>Send to the desk now</button>
           </div>
-          <div className="st-saved">
-            <span className="st-label">Saved answers — tap to use, then edit</span>
-            <div className="st-row wrap">
-              {content.saved.map((c) => <button key={c.id} className="st-chip" onClick={() => { setText(c.text); boxRef.current?.focus(); }}>{c.label}</button>)}
-              <button className="st-chip handoff" disabled={busy} onClick={() => reply({ text: content.saved.find((c) => c.id === 'desk')?.text, source: { kind: 'none' }, handoff: 'yes' })}>Send to the desk now</button>
-            </div>
+          <div className="st-input">
+            <textarea id="reply" ref={boxRef} rows={2} value={text} onChange={(e) => setText(e.target.value)} maxLength={600} aria-label="Your answer"
+              onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendTyped(); } }}
+              placeholder="Type an answer (1–4 short sentences). Enter sends, Shift+Enter adds a line." />
+            <button className="st-btn p" disabled={busy || !text.trim()} onClick={sendTyped}>Send<Icon n="right" /></button>
           </div>
-          <label className="st-label" htmlFor="reply">Your answer (1–4 short sentences)</label>
-          <textarea id="reply" ref={boxRef} rows={3} value={text} onChange={(e) => setText(e.target.value)} maxLength={600}
-            onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendTyped(); } }}
-            placeholder="Type an answer. Enter sends, Shift+Enter adds a line." />
           <div className="st-source" role="radiogroup" aria-label="Where this answer comes from">
-            <span className="st-label">Source</span>
+            <span className="st-hint">Source</span>
             {(['catalog', 'named', 'none'] as const).map((k) => (
               <label key={k} className={'st-radio' + (kind === k ? ' on' : '')}>
                 <input type="radio" name="src" checked={kind === k} onChange={() => setKind(k)} />
-                {k === 'catalog' ? 'Catalog fact' : k === 'named' ? 'Named source' : 'None'}
+                {k === 'catalog' ? 'Catalog' : k === 'named' ? 'Named' : 'None'}
               </label>
             ))}
             {kind === 'catalog' && (
@@ -446,12 +455,9 @@ function Conversation({ thread, content, settings, now, api }: { thread: Thread;
               </select>
             )}
             {kind === 'named' && <input className="st-named" value={named} onChange={(e) => setNamed(e.target.value)} placeholder="e.g. Circulation desk, cpl.org/hours" aria-label="Named source" />}
-            {kind === 'none' && <span className="st-hint">Logged as a candidate catalog entry.</span>}
+            {kind === 'none' && <span className="st-hint">· logged as a candidate catalog entry</span>}
           </div>
           {err && <p className="st-err" role="alert">{err}</p>}
-          <div className="st-row end">
-            <button className="st-btn p" disabled={busy || !text.trim()} onClick={sendTyped}>Send answer<Icon n="right" /></button>
-          </div>
         </div>
       )}
     </>
@@ -464,35 +470,43 @@ function DraftCard({ draft, modelName, busy, tagged, onUse, onSend, onRedraft }:
   onUse: (d: Draft) => void; onSend: (d: Draft) => void; onRedraft: () => void;
 }) {
   if (!draft) return (
-    <div className="st-draft idle"><span className="st-label">Suggested reply</span><button className="st-btn" onClick={onRedraft}><Icon n="spark" />Draft a reply</button></div>
+    <div className="st-draft idle"><span className="st-label">Suggested reply</span><button className="st-link" onClick={onRedraft}><Icon n="spark" />Draft a reply</button></div>
   );
-  const head = <span className="st-label">Suggested reply · {modelName(draft.model)}{draft.ms ? ` · ${(draft.ms / 1000).toFixed(1)} s` : ''}</span>;
-  if (draft.status === 'drafting') return <div className="st-draft busy" aria-busy="true">{head}<p className="st-draft-wait"><span className="st-dots" aria-hidden="true"><i /><i /><i /></span>Reading the conversation and the facts library…</p></div>;
-  if (draft.status === 'error') return <div className="st-draft err">{head}<p>{draft.error || 'The draft didn’t work.'}</p><div className="st-row"><button className="st-btn" onClick={onRedraft}>Try again</button></div></div>;
-  if (draft.kind === 'no_fact') return (
-    <div className="st-draft none">{head}
-      <p><b>No fact in the library covers this.</b> {draft.note}</p>
-      <p className="st-hint">Write it yourself. With no source it’s logged as a candidate catalog entry.</p>
-      <div className="st-row"><button className="st-btn" onClick={onRedraft}>Redraft</button></div>
+  const head = (
+    <div className="st-draft-h">
+      <span className="st-label">Suggested reply</span>
+      <span className="st-hint">{modelName(draft.model)}{draft.ms ? ` · ${(draft.ms / 1000).toFixed(1)} s` : ''}</span>
+      {draft.status !== 'drafting' && <button className="st-link" onClick={onRedraft}>Redraft</button>}
     </div>
   );
+  if (draft.status === 'drafting') return <div className="st-draft busy" aria-busy="true">{head}<p className="st-draft-wait"><span className="st-dots" aria-hidden="true"><i /><i /><i /></span>Drafting from the facts library…</p></div>;
+  if (draft.status === 'error') return <div className="st-draft err">{head}<p className="st-hint">{draft.error || 'The draft didn’t work.'}</p></div>;
+  if (draft.kind === 'no_fact') return (
+    <div className="st-draft none">{head}
+      <p className="st-hint"><b>No fact covers this.</b> {draft.note} Write it yourself; with no source it’s logged as a candidate catalog entry.</p>
+    </div>
+  );
+  const n = draft.facts?.length || 0;
   return (
     <div className={'st-draft ready' + (draft.kind === 'locked' ? ' locked' : '')}>
       {head}
       <div className="st-draft-text">{tagged(draft.text || '')}</div>
-      {draft.kind === 'locked' && <p className="st-hint">Locked copy from the catalog ({draft.lockedId}). It sends exactly as written.</p>}
-      {draft.note && <p className="st-draft-note">{draft.note}</p>}
-      {!!draft.placeholders && <p className="st-warn">Uses {draft.placeholders} placeholder{draft.placeholders > 1 ? 's' : ''}: the library doesn’t know {draft.placeholders > 1 ? 'these values' : 'this value'} yet. The patron will see a placeholder tag unless you replace it.</p>}
-      {!!draft.unknownRefs?.length && <p className="st-warn">Cited facts that aren’t in the library: {draft.unknownRefs.join(', ')}. Check before sending.</p>}
-      {!!draft.facts?.length && (
-        <ul className="st-facts" aria-label="Facts used">
-          {draft.facts.map((f) => <li key={f.ref} className={'st-fact ' + f.provenance} title={f.ref}>{f.label}<b>{f.provenance === 'verified' && f.lastVerified ? 'verified ' + f.lastVerified : f.provenance}</b></li>)}
-        </ul>
-      )}
-      <div className="st-row">
-        {draft.kind !== 'locked' && <button className="st-btn" onClick={() => onUse(draft)}>Edit in the box</button>}
-        <button className="st-btn" onClick={onRedraft}>Redraft</button>
-        <button className="st-btn p" disabled={busy} onClick={() => onSend(draft)}>Send as is<Icon n="right" /></button>
+      {!!draft.placeholders && <p className="st-warn sm">{draft.placeholders} placeholder{draft.placeholders > 1 ? 's' : ''} to fill in before sending.</p>}
+      {!!draft.unknownRefs?.length && <p className="st-warn sm">Cites facts not in the library: {draft.unknownRefs.join(', ')}.</p>}
+      <div className="st-draft-foot">
+        <details className="st-draft-more">
+          <summary>{draft.kind === 'locked' ? 'Locked copy · sends exactly as written' : n ? `Based on ${n} fact${n > 1 ? 's' : ''}` : 'Details'}</summary>
+          {draft.note && <p className="st-draft-note">{draft.note}</p>}
+          {n > 0 && (
+            <ul className="st-facts" aria-label="Facts used">
+              {draft.facts!.map((f) => <li key={f.ref} className={'st-fact ' + f.provenance} title={f.ref}>{f.label}<b>{f.provenance === 'verified' && f.lastVerified ? 'verified ' + f.lastVerified : f.provenance}</b></li>)}
+            </ul>
+          )}
+        </details>
+        <div className="st-row">
+          {draft.kind !== 'locked' && <button className="st-btn sm" onClick={() => onUse(draft)}>Edit</button>}
+          <button className="st-btn sm p" disabled={busy} onClick={() => onSend(draft)}>Send<Icon n="right" /></button>
+        </div>
       </div>
     </div>
   );
