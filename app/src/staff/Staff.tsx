@@ -15,8 +15,8 @@ import './staff.css';
 
 interface Msg { id: string; from: 'patron' | 'staff' | 'system'; text: string; at: number; locked?: string; source?: { kind: string; detail?: string }; vote?: 'up' | 'down' | null }
 interface Thread { id: string; kiosk: string; context: string; startedAt: number; updatedAt: number; status: 'waiting' | 'answered' | 'timedout' | 'handed' | 'closed'; open: boolean; closedReason?: string; urgent: boolean; bot: boolean; messages: Msg[] }
-interface Features { cardsOpenChat: boolean }
-interface Settings { passcodeRequired?: boolean; features?: Features; askOn: boolean; ignoreHours: boolean; hoursSet: boolean; insideHours: boolean; endDate: string | null; kiosksOnline: number; replyTimeoutS: number; available: boolean; reason: string }
+interface Features { cardsOpenChat: boolean; showIndex?: boolean; voiceEngine?: 'live' | 'server' | 'browser' }
+interface Settings { passcodeRequired?: boolean; transcribe?: boolean; features?: Features; askOn: boolean; ignoreHours: boolean; hoursSet: boolean; insideHours: boolean; endDate: string | null; kiosksOnline: number; replyTimeoutS: number; available: boolean; reason: string }
 interface Copy { id: string; label: string; text: string }
 interface Content { locked: { bot: Copy; emergency: Copy }; saved: Copy[]; directory: { id: string; name: string }[] }
 
@@ -171,7 +171,7 @@ function Console({ token, onSignOut }: { token: string; onSignOut: () => void })
       </div>
 
       {panel && settings && (
-        <SettingsPanel features={settings.features || { cardsOpenChat: false }} askAvailable={settings.available}
+        <SettingsPanel features={settings.features || { cardsOpenChat: false }} askAvailable={settings.available} transcribe={!!settings.transcribe}
           onChange={(f) => api('/api/staff/settings', { features: f })} onClose={() => setPanel(false)} />
       )}
       <div className="st-body">
@@ -213,7 +213,8 @@ function Console({ token, onSignOut }: { token: string; onSignOut: () => void })
 }
 
 /** Patron-facing settings. Each switch changes what the kiosk does, live. Add new ones as rows here. */
-function SettingsPanel({ features, askAvailable, onChange, onClose }: { features: Features; askAvailable: boolean; onChange: (f: Partial<Features>) => void; onClose: () => void }) {
+function SettingsPanel({ features, askAvailable, transcribe, onChange, onClose }: { features: Features; askAvailable: boolean; transcribe: boolean; onChange: (f: Partial<Features>) => void; onClose: () => void }) {
+  const engine = features.voiceEngine || 'live';
   useEffect(() => {
     const k = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', k);
@@ -240,6 +241,39 @@ function SettingsPanel({ features, askAvailable, onChange, onClose }: { features
             aria-label="Place cards start a chat" onClick={() => onChange({ cardsOpenChat: !features.cardsOpenChat })}>
             <span className="st-sw" aria-hidden="true" /><b>{features.cardsOpenChat ? 'On' : 'Off'}</b>
           </button>
+        </section>
+
+        <section className="st-setting">
+          <div className="st-setting-text">
+            <h3>Prototype index link</h3>
+            <p>The small “Prototype index” link in the kiosk’s bottom corner, which opens the list of every page and demo flag. Show it for demos; hide it on a kiosk patrons use.</p>
+          </div>
+          <button className={'st-toggle light' + (!!features.showIndex ? ' on' : '')} role="switch" aria-checked={!!features.showIndex}
+            aria-label="Prototype index link" onClick={() => onChange({ showIndex: !features.showIndex })}>
+            <span className="st-sw" aria-hidden="true" /><b>{!!features.showIndex ? 'Shown' : 'Hidden'}</b>
+          </button>
+        </section>
+
+        <section className="st-setting column">
+          <div className="st-setting-text">
+            <h3 id="st-voice-h">Voice transcription</h3>
+            <p>How the kiosk turns a patron’s spoken question into text. Either way, the patron sees the words and taps Send it.</p>
+          </div>
+          <div className="st-choices" role="radiogroup" aria-labelledby="st-voice-h">
+            <label className={'st-choice' + (engine === 'live' ? ' on' : '')}>
+              <input type="radio" name="voice-engine" checked={engine === 'live'} onChange={() => onChange({ voiceEngine: 'live' })} />
+              <span><b>OpenAI live, through the relay</b> (default)<br />Words appear while the patron is still talking (OpenAI Realtime). Same on every device. Falls back to “after speaking” if a live session can’t open.</span>
+            </label>
+            <label className={'st-choice' + (engine === 'server' ? ' on' : '')}>
+              <input type="radio" name="voice-engine" checked={engine === 'server'} onChange={() => onChange({ voiceEngine: 'server' })} />
+              <span><b>OpenAI after speaking, through the relay</b><br />Records the question, then the words appear a moment after the patron stops talking. Slightly more accurate on long questions.</span>
+            </label>
+            <label className={'st-choice' + (engine === 'browser' ? ' on' : '')}>
+              <input type="radio" name="voice-engine" checked={engine === 'browser'} onChange={() => onChange({ voiceEngine: 'browser' })} />
+              <span><b>Built-in (the device’s browser)</b><br />Words appear while the patron speaks, where the device supports it (desktop Chrome sends audio to Google). Falls back to OpenAI on Android or if it fails.</span>
+            </label>
+          </div>
+          {!transcribe && <p className="st-warn" role="status">OpenAI transcription isn’t set up on this relay (no OPENAI_API_KEY), so the kiosk is using built-in recognition whichever you pick.</p>}
         </section>
       </aside>
     </>
