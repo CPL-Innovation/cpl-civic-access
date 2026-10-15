@@ -9,6 +9,7 @@
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { CplMark } from '../lib/CplMark';
+import { API } from '../lib/api';
 import { Icon } from '../lib/Icon';
 import './staff.css';
 
@@ -37,7 +38,7 @@ export default function Staff() {
   // No passcode configured on the relay: sign in silently. Only show the form if the relay asks for one.
   useEffect(() => {
     if (token) return;
-    fetch('/api/staff/login', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ passcode: '' }) })
+    fetch(API + '/api/staff/login', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ passcode: '' }) })
       .then(async (r) => { if (r.ok) { const t = (await r.json()).token; setToken(t); setTok(t); } else setNeedsPass(true); })
       .catch(() => setNeedsPass(true));
   }, [token]);
@@ -52,7 +53,7 @@ function Login({ onToken }: { onToken: (t: string) => void }) {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErr('');
-    const r = await fetch('/api/staff/login', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ passcode: pass }) }).catch(() => null);
+    const r = await fetch(API + '/api/staff/login', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ passcode: pass }) }).catch(() => null);
     if (!r) return setErr('Can’t reach the relay. Is `npm run dev` running?');
     if (!r.ok) return setErr('That passcode didn’t work.');
     onToken((await r.json()).token);
@@ -83,7 +84,7 @@ function Console({ token, onSignOut }: { token: string; onSignOut: () => void })
   const soundRef = useRef(false);
   soundRef.current = sound;
 
-  const api = (path: string, data?: unknown) => fetch(path, {
+  const api = (path: string, data?: unknown) => fetch(API + path, {
     method: data === undefined ? 'GET' : 'POST',
     headers: { 'content-type': 'application/json', 'x-staff-token': token },
     body: data === undefined ? undefined : JSON.stringify(data),
@@ -97,7 +98,7 @@ function Console({ token, onSignOut }: { token: string; onSignOut: () => void })
     // Check the token first: EventSource can't see a 401.
     api('/api/staff/settings', {}).then((r) => {
       if (cancelled || !r.ok) return;
-      es = new EventSource(`/api/staff/stream?token=${encodeURIComponent(token)}`);
+      es = new EventSource(API + `/api/staff/stream?token=${encodeURIComponent(token)}`);
       es.addEventListener('snapshot', (e) => {
         const d = JSON.parse((e as MessageEvent).data);
         setThreads(new Map((d.threads as Thread[]).map((t) => [t.id, t])));
@@ -164,7 +165,7 @@ function Console({ token, onSignOut }: { token: string; onSignOut: () => void })
         )}
         <span className="st-grow" />
         <label className="st-check"><input type="checkbox" checked={sound} onChange={(e) => { setSound(e.target.checked); if (e.target.checked) ping(); }} /> Sound on new questions</label>
-        <a className="st-link" href={`/api/staff/log.csv?token=${encodeURIComponent(token)}`}>Export log (CSV)</a>
+        <a className="st-link" href={API + `/api/staff/log.csv?token=${encodeURIComponent(token)}`}>Export log (CSV)</a>
         <button className="st-link" onClick={() => api('/api/staff/clear', {})}>Clear ended conversations</button>
         {settings?.passcodeRequired && <button className="st-link" onClick={onSignOut}>Sign out</button>}
       </div>
