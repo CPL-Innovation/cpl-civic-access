@@ -1,6 +1,6 @@
 # TechCentral concierge kiosk — clickable prototype
 
-Static Vite + React + TypeScript app. No backend, nothing stored. Built from `../design-reference/` (see `../HANDOFF.md`).
+Static Vite + React + TypeScript app. No backend, nothing stored. See the [repo README](../README.md) for what this is, how it relates to the vault specs, the design system, and known gaps.
 
 ```
 npm install
