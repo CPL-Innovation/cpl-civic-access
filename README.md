@@ -1,12 +1,28 @@
-# Cleveland Civic Access · TechCentral kiosk prototype
+# Cleveland Civic Access · kiosk prototypes
 
-A clickable prototype of the **TechCentral concierge kiosk** at Cleveland Public Library: a touchscreen at the TechCentral entrance that gives a patron a short plan for their visit, plus the phone pages, printed slip, and release-station card that let the plan leave with them.
+Prototypes for **Cleveland Civic Access**, a resident-centered front door to services across Cleveland Public Library, the City of Cleveland, and CMSD. This repo holds three things on one app:
 
-It is part of **Cleveland Civic Access**, a resident-centered front door to services across CPL, the City of Cleveland, and CMSD. TechCentral is the first pilot.
+| Path | What | Status |
+|---|---|---|
+| **`/libraryentrance`** (and `/`) | **Main Library entrance kiosk.** Whole-building orientation beside the catalog computer, with **"Ask a library assistant"** answered by a real person | ▶ Current target, Cut 1 (Walkable) |
+| **`/staff`** | **Library assistant console.** The person answering sees questions arrive live, replies, and tags each answer's source | Built ahead of Cut 2 at Jungu's request |
+| **`/techcentral`** | **TechCentral concierge kiosk** (printing and 3D printing), with its phone pages, printed slip, and release-station card | 📌 Pinned, unchanged |
 
-> **Status: prototype, not for patrons.** Every unverified fact is invented sample content. There is no backend, no live AI, and no placeholder build gate yet (see [Known gaps](#known-gaps)).
+> **Status: prototype, not for patrons.** Every unverified fact is a placeholder: the entrance shows them as visible `[PLACEHOLDER: …]` tags. There's no placeholder build gate and no catalog sync yet (see [Known gaps](#known-gaps)).
 
-**Try it:** clone, then `npm --prefix app install && npm --prefix app run dev`, and open http://localhost:5180. The index of every page and flag is at `/links`.
+**Try it:**
+```bash
+npm --prefix app install
+```
+```bash
+npm --prefix app run dev
+```
+Then open http://localhost:5180. That's the entrance kiosk. The index of every page and flag is at `/links`.
+
+To try the live assistant:
+1. Open `/staff` in a second window. There's no sign-in.
+2. Switch **Ask on the kiosk** on.
+3. On the kiosk, tap to start, then **Ask a library assistant**.
 
 ---
 
@@ -14,86 +30,120 @@ It is part of **Cleveland Civic Access**, a resident-centered front door to serv
 
 | Truth for… | Lives in |
 |---|---|
-| **Why and what:** product intent, journeys, the pilot mockup spec, the facts catalog | The project's Obsidian vault, `build/` (`BUILD-SPEC.md`, `techcentral-pilot/mockup-spec.md`, `catalog/techcentral/`). Read-only for coding agents |
+| **Why and what:** product intent, the build slices, the mockup spec, the facts catalog | The project's Obsidian vault, `build/`: `BUILD-SPEC.md`, `entrance-kiosk/BUILD-entrance-kiosk.md`, `techcentral-pilot/mockup-spec.md`, `catalog/`. Read-only for coding agents |
 | **How:** implementation | This repo |
-| **Proposed scope or intent changes from a build session** | The vault's `build/_FROM-BUILD.md`, the only file an agent may write there. Jungu merges it into the specs |
+| **Proposed scope or intent changes from a build session** | The vault's `build/_FROM-BUILD.md`, the only file an agent may write there. Jungu merges it |
 
-This repo doesn't duplicate the vault specs. If code and spec disagree on intent, the disagreement goes into `_FROM-BUILD.md`, not into this README.
-
-## What's in the repo
+## How it's built
 
 ```
-app/                          The prototype: Vite + React + TypeScript, static build, no backend
-  src/kiosk/                  Kiosk shell, state machine, screens, overlays, kiosk.css
-  src/phone/                  Phone pages the QR codes open (/tc/*)
-  src/print/                  Printed plan slip and release-station card (/print/*)
-  src/content/*.json          Patron-facing copy and facts, editable without touching code
-  src/lib/                    Placeholder rendering, stubbed assistant, speech, QR, CPL mark
-  src/config.ts               Deployment flags (printer, orientation, placeholders, larger text, timeouts)
-  CPL_TheCenter_icon.svg      The CPL mark (landing lockup and watermark read from this file)
-  README.md                   App details: pages, flags, content format, assistant interface
-design-reference/             The original design-canvas mockups (.dc.html), kept as reference
-HANDOFF.md, CLAUDE-CODE-PROMPT.md   The original design handoff and build prompt (historical; the build has moved past them)
-DESIGN-SYSTEM-REVISION-PROMPT.md    Prompt sent to revise the CPL Design System's Service mode (motion, decorative icons, watermark)
-DESIGN-SYSTEM-REVISION-DELTA.md     Follow-up: large-display hairlines, service tiles, caption-size eyebrows
+app/
+  index.html, vite.config.ts      One Vite + React + TypeScript app; /api is proxied to the relay in dev
+  server/index.ts                 The library assistant relay (Node, no dependencies, runs TypeScript directly)
+  server/hours.json               Posted hours for Ask (empty = not decided yet; the switch alone decides)
+  scripts/dev.mjs                 Starts the relay (5181) and Vite (5180) together
+  src/main.tsx                    Router: /libraryentrance, /staff, /techcentral/…, /links
+  src/entrance/                   The entrance kiosk
+  src/staff/                      The console
+  src/kiosk/, src/phone/, src/print/, src/Links.tsx   The TechCentral prototype (pinned; served under /techcentral)
+  src/content/entrance.json       Entrance copy and facts (all placeholders in Cut 1)
+  src/content/*.json              TechCentral copy and facts
+  src/lib/                        Shared: placeholder rendering, icons, CPL mark, QR, speech
+  CPL_TheCenter_icon.svg          The CPL mark
+design-reference/                 The original design-canvas mockups (TechCentral)
+DESIGN-SYSTEM-REVISION-*.md       Prompts sent to revise the CPL Design System's Service mode
+HANDOFF.md, CLAUDE-CODE-PROMPT.md The original TechCentral handoff (historical)
 ```
 
-`app/CPL-Design-System.html` is the CPL Design System reference. It's large and git-ignored, so get it from the design team and put it at that path.
+`app/CPL-Design-System.html` is the CPL Design System reference. It's git-ignored, so get it from the design team.
 
-## What the prototype does
+### The entrance kiosk (`/libraryentrance`)
 
-- **Kiosk** (`/`), portrait 1080×1920 by default, scaled to fit any window:
-  - Landing screen, then Home with four categories: Print something, 3D print something, Computers & Wi‑Fi, Something else.
-  - **Printing:** where's your file → a one-screen plan → step detail → take it with you (print a slip, scan a QR code with a large short URL, or show staff). "My print didn't come out" lives inside Printing: five fix cards plus "something else".
-  - **3D printing:** what you can make → which way is right for you (with a three-question self-check) → Plan A (we print it) or Plan B (run it yourself, including failure options with a fixed safety message) → the rules.
-  - **Computers & Wi‑Fi:** a preview screen with short facts and a staff path.
-  - **Assistant:** opened from "Ask about this", with suggested questions first and an on-screen keyboard second. Answers show "Based on…" and an AI label, and can be added to the plan. There are four refusal types: not in the guide, staff call, off-topic, and safety. It runs on a stub.
-  - **Always available:** Back, Staff help, Accessibility (larger text on by default, high contrast, read aloud) and Start over.
-  - **Session:** "Still there?" after 50 seconds, then a 15-second countdown, then a full reset that wipes everything.
-- **Phone pages** (`/tc/usb`, `/tc/3d`, `/tc/lost`, `/tc/ref`, …): read-only plans and fixes with an accordion of steps and the same assistant. No kiosk session.
-- **Print** (`/print/slip`, `/print/card`): the Letter slip and the 5.5×8.5 in release-station card, with print stylesheets.
+- **Same app, components, tokens, motion layer, and session lifecycle** as the TechCentral kiosk:
+  - attract screen, Home, Back, Accessibility (larger text on by default, high contrast, read aloud) and Start over. Unlike TechCentral, the entrance bar has no Staff help button;
+  - "Still there?" after 50 seconds, then a 15-second countdown, then a full reset that wipes the conversation.
+- **Attract screen:** "New here? Find your way around the Main Library", plus the catalog-computer redirect for people looking for a book.
+- **Home:**
+  - "Ask a library assistant", shown only while a person is on;
+  - a short draft directory (six starting entries for desk staff to correct);
+  - the TechCentral doorway.
+- **Directory entry:** floor, nearest desk, hours, and a photo slot, all placeholder tags.
+- **TechCentral doorway:** location and hours, plus buttons into the TechCentral prototype's print and 3D-print plans, with tags on. Start over there brings the kiosk back to the entrance.
+- **Ask panel** (mockup spec §5, Phase 1):
+  - a full-height chat. Before the first message it's voice-first: a large record button ("Tap and ask out loud"), then suggested questions; after that, bubbles above a message field with a small mic and Send at the bottom, and the on-screen keyboard docked under it. There's no public-screen notice;
+  - **voice input:** tap the mic for a live dictation view (bars that follow your voice, words appearing as you speak); when you finish, the view shows what it heard with **Retry** or **Send it** (Send it sends the message and returns to the chat). It uses the browser's speech recognition; in Chrome that means Google's speech service hears the audio. `?voice=demo` plays a scripted dictation without a microphone, and `?voice=off` hides the mic;
+  - "The library assistant is looking into it" while waiting; if no reply comes, the panel says where staff are;
+  - **Close ends the conversation:** with a conversation going, Close (or Back, Escape, the backdrop) asks "End this chat?" Ending it tells the relay (the console marks it ended; the log says "patron ended the chat") and erases it from the screen. "Based on: …" only steps out to a place and keeps the conversation;
+  - each reply with "Based on: …", a source line, and Helpful / Not helpful;
+  - after the reply timeout (2 minutes), a plain pointer to staff;
+  - typed emergency words show the locked emergency message instantly; "Are you a bot?" is answered with locked copy by the person at the console;
+  - no AI cues anywhere.
+- **While waiting for a reply, the idle timer pauses** (until the reply timeout), so the kiosk doesn't wipe a conversation while the patron is standing there.
+
+### The relay and console (`/staff`)
+
+The relay (`app/server/index.ts`) passes questions from a kiosk session to the console and replies back, in real time.
+- **How it talks:** server-sent events out, plain POSTs in.
+- **Storage:** in memory only. A restart erases everything.
+- **When Ask shows on the kiosk:** only when the console switch is on, a console is connected, and it's inside the posted hours (none are set yet).
+
+The console is one screen for one person:
+- a queue with wait timers and badges ("Emergency words", "Are you a bot?");
+- the conversation;
+- saved answers (tap to use, then edit) and locked answers (one tap, can't be edited);
+- a **source tag** on every reply: catalog fact, named source, or none, which is logged as a candidate catalog entry;
+- "Send to the desk now", which marks a handoff;
+- **Settings** (patron-facing switches, live, reset on relay restart). First one: **Place cards start a chat**. When it's on and Ask is showing, tapping a place on Home opens the chat and sends that card's question as the patron's first message; when it's off, the card opens the place's info screen;
+- **Delete conversation** for a finished one (confirm step), or **Clear ended conversations** for all of them. Open conversations can't be deleted. Deleted ones also leave the log export;
+- an optional chime for new questions;
+- **Export log (CSV)**, one row per exchange: time, kiosk, context, question, answer, source, response time, outcome, vote. It holds no patron identifiers.
+
+**Access:** the console is open, with no sign-in, by default. Set `STAFF_PASSCODE` on the relay to require a passcode, which you should do before the kiosk is on any network other people can reach. There are no accounts.
+
+### The TechCentral prototype (`/techcentral`)
+
+Unchanged, served under a new prefix: the kiosk, the phone pages at `/techcentral/tc/*`, the slip and card at `/techcentral/print/*`, and its own index at `/techcentral/links`. Old `/tc/*` and `/print/*` links redirect.
+
+Demo it with placeholder tags on (`/techcentral?ph=tags`). Its stubbed assistant still uses the earlier "AI answer" labelling.
+
+Details are in [app/README.md](app/README.md).
 
 ## Design
 
-The UI follows the **CPL Design System, Service mode**:
-- five-step type scale;
-- navy and butter for large areas, marigold for the main call to action on navy;
-- one primary action per screen, ghost button left and primary right;
-- square geometry, 1.5px line icons, 48px touch targets, and the system focus ring;
-- the radio-card pattern for pick-one choices, and coral for safety.
+Both kiosks and the console follow the **CPL Design System, Service mode**:
+- navy and butter fields with a marigold call to action;
+- one primary action per screen, with the ghost button left and the primary right;
+- square geometry, 1.5px line icons, and 48px targets;
+- radio cards for pick-one choices, and coral for safety.
 
-Two labelled layers in `app/src/kiosk/kiosk.css` go beyond Service mode on purpose, pending the design-system revision in the prompt files:
-
-- **Expressive layer:** the slowly turning CPL watermark, bobbing landing icons, directional screen slides, staggered entrances, press feedback and confirmation pops. All of it is off under `prefers-reduced-motion`.
-- **Large-display exceptions:** filled navy icon tiles on category cards, and 2px card borders for reading at a distance.
-
-## Content and placeholders
-
-Facts staff must confirm are written `[[what to verify|sample value]]` in `app/src/content/*.json`.
-- **By default** the sample value shows with a dotted underline; hover it to see what needs checking.
-- **`?ph=tags`** shows the `[PLACEHOLDER: …]` tags the pilot spec asks mockups to use.
-- **`npm --prefix app run placeholders`** lists what's left.
-
-Every unverified fact here is made up for the prototype.
+The kiosks also carry two labelled departures, pending the design-system revision in the prompt files:
+- an **expressive motion layer**, off under reduced motion;
+- **large-display exceptions:** filled navy icon tiles and 2px borders.
 
 ## Run, build, configure
 
-```bash
-npm --prefix app install
-```
-```bash
-npm --prefix app run dev
-```
-```bash
-npm --prefix app run build
-```
+| Command | What it does |
+|---|---|
+| `npm --prefix app run dev` | Relay on 5181 and Vite on 5180, which proxies `/api` |
+| `npm --prefix app run build` | Static build into `app/dist/` |
+| `npm --prefix app start` | The relay serves `app/dist/` and `/api` from one process (`RELAY_PORT` or `PORT`) |
 
-The build is static (`app/dist/`). Host it with an SPA fallback to `index.html`, so `/tc/*` and `/print/*` resolve.
+**Relay environment variables:**
+- `STAFF_PASSCODE` (optional; unset means `/staff` is open with no sign-in)
+- `REPLY_TIMEOUT_S` (default 120)
+- `RELAY_PORT` or `PORT`
 
-**Flags:** defaults are in `app/src/config.ts`, and URL overrides are listed in [app/README.md](app/README.md#flags):
+**Entrance flags:**
+- `?ask=live|scripted|off` (scripted = canned replies at a person's pace, for demos with nobody at the console)
+- `?replyDelay=7` and `?noreply=1` (scripted mode)
+- `?replyTimeout=20`
+- `?hours=off` (scripted: Ask hidden)
+- `?kiosk=main-entrance`
+- `?voice=demo|off` (simulated dictation, or no mic button)
+- `?cards=chat` (scripted mode: act as if "Place cards start a chat" were on)
+
+**Shared kiosk flags:**
 - `?orient=portrait|landscape|auto`
-- `?printer=0`
-- `?ph=mock|tags|clean`
 - `?lg=0`
 - `?idle=10&countdown=8`
 - `?timers=off`
@@ -101,15 +151,17 @@ The build is static (`app/dist/`). Host it with an SPA fallback to `index.html`,
 
 ## Known gaps
 
-Things the specs require that this prototype doesn't do yet:
+The open items for Cut 2 (the two-week patron run) are tracked in `entrance-kiosk/BUILD-entrance-kiosk.md`. In short:
 
-- **No catalog sync.** Content is hand-written JSON in the repo. The vault's `catalog/techcentral/` facts library (YAML frontmatter, `{{entity.fact}}` references, per-fact `provenance` and `last_verified`) is meant to be synced one-way into the app. That sync and the renderer that carries provenance to the screen aren't built.
-- **No placeholder build gate.** A patron-facing build must fail on any placeholder fact. This repo has one build, and it shows sample values by default.
-- **Assistant is a stub** over a fixed Q&A table with keyword matching. The live model, retrieval, and logging policy are undecided.
-- **Fixed-canvas kiosk.** The kiosk renders a fixed 1080×1920 (or 1920×1080) canvas scaled to the window. It doesn't reflow, so it doesn't meet WCAG 1.4.10 (reflow at 320px / 200% zoom) the way the platform spec requires of the shared web app. Phone pages do reflow.
-- **Short URLs and QR codes** point at this build's own address, and the printed short URLs are placeholders. There is no real printer integration; "Print my plan" is simulated.
-- **No breakage reporting** ("this wasn't right") and **no staff-facing catalog view**.
-- **Not run on kiosk hardware.** Reach, glare and audio are unconfirmed.
+- **No catalog sync.** Content is hand-written JSON in the repo. `catalog/main-library/` doesn't exist yet. Its entries come from the desk staff and then the question log.
+- **No placeholder build gate.** A patron-facing build must fail on any placeholder fact. Nothing here is patron-facing yet.
+- **Log retention is undecided** (decision 2). The relay keeps everything in memory only, and the CSV export is manual.
+- **The live run needs:**
+  - a reflowing layout (decision 1): the kiosks render a fixed canvas scaled to the screen, allowed through R2 only;
+  - posted hours and an end date;
+  - the entrance emergency wording from CPL security;
+  - kiosk lockdown and a network path to the relay.
+- **TechCentral:** catalog sync, `@cpl/tokens`, and reflow before R3, all on hold while it's pinned.
 
 ## License
 

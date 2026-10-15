@@ -1,7 +1,7 @@
 import { Fragment, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { config } from '../config';
 import {
-  ASSIST, FAILS, FIX, FIXES, PLANS, PRINTING, SITE, THREED, checkedFor, pathOf,
+  ASSIST, FAILS, FIX, FIXES, PLANS, PRINTING, SITE, TC_BASE, THREED, checkedFor, pathOf,
   type Ctx, type FixId, type PlanId,
 } from '../content';
 import { answerSource, type Answer } from '../lib/assistant';
@@ -45,7 +45,7 @@ const snap = (s: S): Snap => ({ screen: s.screen, plan: s.plan, sym: s.sym, step
 
 const KEYROWS = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM?'];
 
-function useViewport() {
+export function useViewport() {
   const [vp, setVp] = useState({ w: window.innerWidth, h: window.innerHeight });
   useEffect(() => {
     const f = () => setVp({ w: window.innerWidth, h: window.innerHeight });
@@ -59,7 +59,7 @@ function useViewport() {
 
 const Chev = () => <Icon n="chev" className="chev" />;
 
-function Choice({ icon, label, sub, onClick, big }: { icon?: IconName; label: React.ReactNode; sub?: React.ReactNode; onClick: () => void; big?: boolean }) {
+export function Choice({ icon, label, sub, onClick, big }: { icon?: IconName; label: React.ReactNode; sub?: React.ReactNode; onClick: () => void; big?: boolean }) {
   return (
     <button className={'choice' + (big ? ' big' : '')} onClick={onClick}>
       {icon && <span className="cic"><Icon n={icon} /></span>}
@@ -83,7 +83,7 @@ function Src({ k, policy }: { k: string; policy?: boolean }) {
   return <p className="src">From TechCentral{policy ? ' 3D printing policy' : ''} · checked <T s={checkedFor(k)} /></p>;
 }
 
-function Slot({ alt, kind = 'Screenshot or photo slot', wide }: { alt: string; kind?: string; wide?: boolean }) {
+export function Slot({ alt, kind = 'Screenshot or photo slot', wide }: { alt: string; kind?: string; wide?: boolean }) {
   return (
     <div className={'islot' + (wide ? ' wide' : '')} role="img" aria-label={alt}>
       <Icon n="image" />
@@ -94,7 +94,7 @@ function Slot({ alt, kind = 'Screenshot or photo slot', wide }: { alt: string; k
 
 function Staff() { return <T s={SITE.staff} />; }
 
-function SafetyBox() {
+export function SafetyBox() {
   return (
     <div className="ansbox safety" role="alert">
       <span className="rhead"><Icon n="warn" />Safety</span>
@@ -134,7 +134,7 @@ export default function Kiosk() {
   const W = land ? 1920 : 1080, H = land ? 1080 : 1920;
   const scale = config.fit ? Math.min(vp.w / W, vp.h / H) : 1;
 
-  const [s, setS] = useState<S>(fresh);
+  const [s, setS] = useState<S>(() => (config.start ? { ...fresh(), screen: config.start, dir: 'none' } : fresh()));
   const last = useRef(Date.now());
   const askToken = useRef(0);
   const trigger = useRef<HTMLElement | null>(null);
@@ -182,7 +182,11 @@ export default function Kiosk() {
 
   // Back on the welcome screen (Start over, Done, or timeout): drop anything still in flight.
   useEffect(() => {
-    if (s.screen === 'attract') { askToken.current++; speech.stop(); }
+    if (s.screen === 'attract') {
+      askToken.current++; speech.stop();
+      // Opened from another kiosk's doorway: a reset hands the screen back to it.
+      if (config.returnTo) window.location.replace(config.returnTo);
+    }
   }, [s.screen]);
 
   // Remember what opened an overlay, unless it was a button inside another overlay.
@@ -468,7 +472,7 @@ export default function Kiosk() {
       case 'take': {
         const fromFix = s.takeFrom === 'fix';
         const t = fromFix ? { name: 'Fix · ' + fix.label, url: fix.url, say: fix.say } : { name: plan.chip, url: plan.url, say: plan.say };
-        const slipHref = '/print/slip?' + (fromFix ? 'fix=' + s.sym : 'plan=' + s.plan) + (config.placeholders !== 'mock' ? '&ph=' + config.placeholders : '');
+        const slipHref = TC_BASE + '/print/slip?' + (fromFix ? 'fix=' + s.sym : 'plan=' + s.plan) + (config.placeholders !== 'mock' ? '&ph=' + config.placeholders : '');
         return (
           <section className="scr">
             <div className="info">
@@ -943,7 +947,7 @@ export default function Kiosk() {
           </div>
         )}
       </div>
-      {config.fit && <a className="devbadge" href="/links" title="Prototype index: all pages and flags">Prototype index</a>}
+      {config.fit && <a className="devbadge" href={TC_BASE + '/links'} title="Prototype index: all pages and flags">Prototype index</a>}
     </div>
   );
 }

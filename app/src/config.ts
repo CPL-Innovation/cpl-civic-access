@@ -30,6 +30,10 @@ export const config = {
   timers: q.get('timers') !== 'off',
   /** ?fit=0 renders at native 1080×1920 / 1920×1080 instead of scaling to the window. */
   fit: q.get('fit') !== '0',
+  /** ?start=p0|m0 opens the TechCentral kiosk on that screen (used by the entrance doorway). */
+  start: (['p0', 'm0', 'home'] as const).find((v) => v === q.get('start')) ?? null,
+  /** ?return=/libraryentrance: when the session resets, go back there instead of the attract screen. */
+  returnTo: (q.get('return') || '').startsWith('/') ? q.get('return') : null,
 };
 
 /** Keep flags when linking between prototype pages. */

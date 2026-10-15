@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FIX, FIXES, PLANS, SITE, checkedFor, pathOf, type FixId, type PlanId } from '../content';
+import { FIX, FIXES, PLANS, SITE, TC_BASE, checkedFor, pathOf, type FixId, type PlanId } from '../content';
 import { T } from '../lib/ph';
 import { Qr } from '../lib/Qr';
 import './print.css';
@@ -12,7 +12,7 @@ function Toolbar({ title, children }: { title: string; children?: React.ReactNod
     <div className="pr-bar">
       <b>{title}</b>
       {children}
-      <a href="/links">Prototype index</a>
+      <a href={TC_BASE + '/links'}>Prototype index</a>
       <button className="p" onClick={() => window.print()}>Print</button>
     </div>
   );

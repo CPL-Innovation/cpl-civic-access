@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { FIX, FIXES, PLANS, THREED, pathOf, type FixId, type PlanId } from './content';
+import { FIX, FIXES, PLANS, TC_BASE, THREED, pathOf, type FixId, type PlanId } from './content';
 
 /** Prototype index: every page this build serves, and the flags. Not part of the kiosk. */
 export default function Links() {
@@ -18,14 +18,14 @@ export default function Links() {
 
         <h2 style={{ fontSize: 20, marginBottom: 4 }}>Kiosk</h2>
         <ul>
-          <L href="/" note="portrait 1080 × 1920, centered in any window">Kiosk</L>
-          <L href="/?orient=auto" note="follows the window’s shape">Auto orientation</L>
-          <L href="/?orient=landscape">Landscape 1920 × 1080</L>
-          <L href="/?printer=0" note="hides “Print it” on the takeaway screen">No-printer mode</L>
-          <L href="/?ph=tags" note="the design's placeholder tags">Placeholders as tags</L>
-          <L href="/?idle=10&countdown=8" note="idle after 10 s, 8 s countdown">Fast idle timeout (demo)</L>
-          <L href="/?timers=off" note="no idle timeout while reviewing">Timers off</L>
-          <L href="/?orient=portrait&fit=0" note="true pixel size, scrolls">Native resolution</L>
+          <L href={TC_BASE} note="portrait 1080 × 1920, centered in any window">Kiosk</L>
+          <L href={TC_BASE + "/?orient=auto"} note="follows the window’s shape">Auto orientation</L>
+          <L href={TC_BASE + "/?orient=landscape"}>Landscape 1920 × 1080</L>
+          <L href={TC_BASE + "/?printer=0"} note="hides “Print it” on the takeaway screen">No-printer mode</L>
+          <L href={TC_BASE + "/?ph=tags"} note="the design's placeholder tags">Placeholders as tags</L>
+          <L href={TC_BASE + "/?idle=10&countdown=8"} note="idle after 10 s, 8 s countdown">Fast idle timeout (demo)</L>
+          <L href={TC_BASE + "/?timers=off"} note="no idle timeout while reviewing">Timers off</L>
+          <L href={TC_BASE + "/?orient=portrait&fit=0"} note="true pixel size, scrolls">Native resolution</L>
         </ul>
 
         <h2 style={{ fontSize: 20, marginBottom: 4 }}>Phone pages (what the QR codes open)</h2>
@@ -38,8 +38,8 @@ export default function Links() {
 
         <h2 style={{ fontSize: 20, marginBottom: 4 }}>Print</h2>
         <ul>
-          <L href="/print/slip?plan=usb" note="Letter; pick any plan or fix from the toolbar">Printed plan slip</L>
-          <L href="/print/card" note="5.5 × 8.5 in">Release-station card</L>
+          <L href={TC_BASE + "/print/slip?plan=usb"} note="Letter; pick any plan or fix from the toolbar">Printed plan slip</L>
+          <L href={TC_BASE + "/print/card"} note="5.5 × 8.5 in">Release-station card</L>
         </ul>
 
         <h2 style={{ fontSize: 20, marginBottom: 4 }}>Try these in the kiosk</h2>
