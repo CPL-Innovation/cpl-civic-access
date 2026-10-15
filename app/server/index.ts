@@ -94,14 +94,17 @@ interface Features {
   voiceEngine: 'live' | 'server' | 'browser';
   /** The small "Prototype index" link in the kiosk's corner (for demos; hide it on a real kiosk). */
   showIndex: boolean;
+  /** Under each reply on the kiosk: the source line ("From the Main Library guide · checked …") and the "Based on" chip. */
+  showSources: boolean;
 }
-const FEATURE_KEYS: (keyof Features)[] = ['cardsOpenChat', 'showIndex'];
+const FEATURE_KEYS: (keyof Features)[] = ['cardsOpenChat', 'showIndex', 'showSources'];
 
 const state = {
   // Both start on. Ask still only shows while a console is connected (see availability()).
   features: {
     cardsOpenChat: process.env.CARDS_CHAT_DEFAULT !== 'off',
     showIndex: process.env.SHOW_INDEX_DEFAULT === 'on',
+    showSources: process.env.SHOW_SOURCES_DEFAULT === 'on',
     voiceEngine: (['live', 'server', 'browser'] as const).find((v) => v === process.env.VOICE_ENGINE_DEFAULT) ?? 'live',
   } as Features,
   askOn: process.env.ASK_DEFAULT !== 'off',

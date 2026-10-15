@@ -101,6 +101,8 @@ export default function Entrance() {
   const [liveStt, setLiveStt] = useState(false);
   /** The console's "Prototype index link" setting. */
   const [showIndex, setShowIndex] = useState(ASK_MODE !== 'live'); // hidden by default on a relay-connected kiosk
+  /** The console's "Source and checked date on replies" setting. */
+  const [showSources, setShowSources] = useState(ASK_MODE !== 'live'); // hidden by default on a relay-connected kiosk
   const last = useRef(Date.now());
   const waitingRef = useRef(false);
   const trigger = useRef<HTMLElement | null>(null);
@@ -184,7 +186,7 @@ export default function Entrance() {
       const d = JSON.parse((e as MessageEvent).data);
       setAvail(!!d.available);
       if (d.replyTimeoutS && !REPLY_TIMEOUT_OVERRIDE_S) setReplyTimeoutS(d.replyTimeoutS);
-      if (d.features) { setCardsChat(!!d.features.cardsOpenChat); setShowIndex(!!d.features.showIndex); if (d.features.voiceEngine) setVoiceEngine(d.features.voiceEngine); }
+      if (d.features) { setCardsChat(!!d.features.cardsOpenChat); setShowIndex(!!d.features.showIndex); setShowSources(!!d.features.showSources); if (d.features.voiceEngine) setVoiceEngine(d.features.voiceEngine); }
       setServerStt(!!d.transcribe);
       setLiveStt(!!d.live);
     });
@@ -519,12 +521,12 @@ export default function Entrance() {
             <div className="bubble">
               <span className="who">Library assistant</span>
               <p><T s={m.text} /></p>
-              {m.source?.kind === 'catalog' && PLACE_NAME(m.source.detail) && (
+              {showSources && m.source?.kind === 'catalog' && PLACE_NAME(m.source.detail) && (
                 <button className="based" onClick={() => go(m.source!.detail === 'techcentral' ? { screen: 'techcentral' } : { screen: 'entry', entry: m.source!.detail! })}>
                   <Icon n="pin" />Based on: {PLACE_NAME(m.source.detail)}
                 </button>
               )}
-              {sourceLine(m) && <p className="meta">{sourceLine(m)}</p>}
+              {showSources && sourceLine(m) && <p className="meta">{sourceLine(m)}</p>}
               {!m.locked && (
                 <div className="tools">
                   <button className={'tbtn' + (m.vote === 'up' ? ' on' : '')} aria-pressed={m.vote === 'up'} onClick={() => vote(m, 'up')}><Icon n="up" />Helpful</button>
@@ -611,7 +613,7 @@ export default function Entrance() {
       <div className="sh-h"><Icon n="user" className="sh-ic" /><span className="sh-t" id="staff-t">Staff can help</span><button className="xbtn" onClick={() => set({ ov: '' })}><Icon n="x" />Close</button></div>
       <div className="sh-b">
         <p className="th big"><T s={ENT.staff} /></p>
-        <Slot kind="Photo slot" alt="The nearest staffed desk, seen from this kiosk." wide />
+        <Slot kind="Photo slot" alt="The lending desk across the hallway, seen from this kiosk." wide />
         <p className="lead"><T s={ENT.hours} /></p>
         <p className="lead">Walk over, or show them this screen. No need to explain everything — they’ll ask.</p>
       </div>

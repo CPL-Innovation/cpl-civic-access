@@ -1,5 +1,5 @@
 {
-  "_readme": "Main Library entrance kiosk, Cut 1 (Walkable). Every fact is a bare [[label]] placeholder, so it can only render as a visible [PLACEHOLDER: …] tag. No sample values in this cut, not even behind a demo flag (entrance-kiosk/BUILD-entrance-kiosk.md). The directory names are a draft starting list for desk staff to correct. In Cut 2 this file is replaced by a generated sync from the vault's catalog/main-library/.",
+  "_readme": "Main Library entrance kiosk, Cut 1 (Walkable). Every fact is a bare [[label]] placeholder, so it can only render as a visible [PLACEHOLDER: …] tag, except the nearest staffed desk: the lending desk, right behind the patron across the hallway (Jungu, on site, 2026-10-15; logged in _FROM-BUILD as a catalog candidate). No sample values in this cut, not even behind a demo flag (entrance-kiosk/BUILD-entrance-kiosk.md). The directory names are a draft starting list for desk staff to correct. In Cut 2 this file is replaced by a generated sync from the vault's catalog/main-library/.",
   "checkedDate": "[[date checked]]",
   "place": "Main Library",
   "attract": {
@@ -11,8 +11,8 @@
     "cta": "Tap anywhere to start",
     "foot": "This screen is public. Nothing you choose is saved."
   },
-  "staff": "Staff are at [[nearest staffed desk, from this kiosk]].",
-  "staffShort": "[[nearest desk]]",
+  "staff": "Staff are at the lending desk, right behind you across the hallway.",
+  "staffShort": "the lending desk behind you",
   "hours": "Open today [[today’s hours]].",
   "directory": [
     {
@@ -83,8 +83,8 @@
     "live": "Live now",
     "notice": "This screen is public. Don’t type personal information. Everything is erased when you finish.",
     "waiting": "The library assistant is looking into it.",
-    "timeout": "The library assistant hasn’t been able to answer yet. Staff at [[nearest staffed desk, from this kiosk]] can help you right now.",
-    "unavailable": "The library assistant isn’t available right now. Staff at [[nearest staffed desk, from this kiosk]] can help.",
+    "timeout": "The library assistant hasn’t been able to answer yet. Staff at the lending desk, right behind you across the hallway, can help you right now.",
+    "unavailable": "The library assistant isn’t available right now. Staff at the lending desk, right behind you across the hallway, can help.",
     "sourceGuide": "From the Main Library guide · checked [[date checked]]",
     "sourceNone": "This isn’t in the guide yet. Staff can confirm.",
     "sourceNamed": "From",
@@ -143,17 +143,17 @@
     {
       "id": "desk",
       "label": "Go to the desk",
-      "text": "Staff at [[nearest staffed desk, from this kiosk]] can help with that right away."
+      "text": "Staff at the lending desk, right behind you across the hallway, can help with that right away."
     },
     {
       "id": "off-topic",
       "label": "Off-topic",
-      "text": "I can help you find your way around the Main Library. For anything else, staff at [[nearest staffed desk, from this kiosk]] can help."
+      "text": "I can help you find your way around the Main Library. For anything else, staff at the lending desk, right behind you across the hallway, can help."
     },
     {
       "id": "not-in-guide",
       "label": "Not in the guide",
-      "text": "I don’t have that in the Main Library guide, so I don’t want to guess. Staff at [[nearest staffed desk, from this kiosk]] can help."
+      "text": "I don’t have that in the Main Library guide, so I don’t want to guess. Staff at the lending desk, right behind you across the hallway, can help."
     },
     {
       "id": "catalog",

@@ -100,7 +100,7 @@ const TOOL = {
       text: { type: 'string', description: 'The reply as the patron will read it (empty for locked and no_fact).' },
       locked_id: { type: 'string', description: 'For kind "locked": the locked id, e.g. assistant-and-fixed-copy.safety-stop' },
       facts_used: { type: 'array', items: { type: 'string' }, description: 'entity.fact ids the reply relies on' },
-      note_for_staff: { type: 'string', description: 'One short line for the staff member: what to check, what’s missing, or why this kind.' },
+      note_for_staff: { type: 'string', description: 'At most 20 words for the staff member: what to check or what’s missing. Empty if nothing needs flagging.' },
     },
     required: ['kind', 'text', 'facts_used', 'note_for_staff'],
   },
