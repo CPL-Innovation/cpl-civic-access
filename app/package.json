@@ -10,7 +10,8 @@
     "build": "tsc -b && vite build",
     "start": "node server/index.ts",
     "preview": "vite preview",
-    "placeholders": "grep -rno '\\[\\[[^]]*\\]\\]' src/content"
+    "placeholders": "grep -rno '\\[\\[[^]]*\\]\\]' src/content",
+    "catalog:sync": "node scripts/sync-catalog.mjs"
   },
   "dependencies": {
     "qrcode": "^1.5.4",
@@ -24,7 +25,8 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
     "typescript": "^7.0.2",
-    "vite": "^8.3.4"
+    "vite": "^8.3.4",
+    "yaml": "^2.9.1"
   },
   "engines": {
     "node": ">=22.18"

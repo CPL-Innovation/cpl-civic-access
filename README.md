@@ -93,7 +93,8 @@ The console is one screen for one person:
 - saved answers (tap to use, then edit) and locked answers (one tap, can't be edited);
 - a **source tag** on every reply: catalog fact, named source, or none, which is logged as a candidate catalog entry;
 - "Send to the desk now", which marks a handoff;
-- **Settings** (patron-facing switches, live, reset on relay restart). **Place cards start a chat** (starts on), **Prototype index link** (hidden by default; show it for demos), and **Voice transcription**: OpenAI live (words while speaking, default), OpenAI after speaking, or the device's built-in recognizer with OpenAI as the fallback. When it's on and Ask is showing, tapping a place on Home opens the chat and sends that card's question as the patron's first message; when it's off, the card opens the place's info screen;
+- **Suggested replies (AI).** When a patron asks something, the relay asks Claude (Anthropic API) to draft a reply from the conversation and the **facts library** (the vault catalog, synced into `app/src/content/catalog.generated.json`). The draft appears above the reply box with the facts it relied on (and each fact's provenance), a note for staff, and **Send as is**, **Edit in the box**, or **Redraft**. Grounding follows the catalog README: catalog facts only; a placeholder fact is never stated as a value but appears as a `[[label]]` placeholder tag; locked copy (e.g. the safety stop) is chosen by id and inserted exactly as written; with no matching fact the card says so and you write the answer. Using a draft fills in the source tag, and the log's `draft` column records *sent as is* / *edited* / *not used*. Patrons aren't told. Drafts never reach the kiosk on their own. Code: `app/server/drafts.ts`;
+- **Settings** (live, reset on relay restart). **Suggested replies**: on/off, and the drafting model (Claude Sonnet 5.5 by default; Opus 5.5, Haiku 5.5, or any model id typed in). Then the kiosk's patron-facing switches: **Place cards start a chat** (starts on), **Prototype index link** (hidden by default; show it for demos), and **Voice transcription**: OpenAI live (words while speaking, default), OpenAI after speaking, or the device's built-in recognizer with OpenAI as the fallback. When it's on and Ask is showing, tapping a place on Home opens the chat and sends that card's question as the patron's first message; when it's off, the card opens the place's info screen;
 - **Delete conversation** for a finished one (confirm step), or **Clear ended conversations** for all of them. Open conversations can't be deleted. Deleted ones also leave the log export;
 - an optional chime for new questions;
 - **Export log (CSV)**, one row per exchange: time, kiosk, context, question, answer, source, response time, outcome, vote. It holds no patron identifiers.
@@ -127,11 +128,13 @@ The kiosks also carry two labelled departures, pending the design-system revisio
 | `npm --prefix app run dev` | Relay on 5181 and Vite on 5180, which proxies `/api` |
 | `npm --prefix app run build` | Static build into `app/dist/` |
 | `npm --prefix app start` | The relay serves `app/dist/` and `/api` from one process (`RELAY_PORT` or `PORT`) |
+| `npm --prefix app run catalog:sync` | Copies the vault's `build/catalog/` frontmatter into `app/src/content/catalog.generated.json` (one way; fails on a `{{ref}}` to a missing fact). `CATALOG_DIR` overrides the vault path. Re-run after editing facts, then redeploy |
 
 **Relay environment variables:**
 - `STAFF_PASSCODE` (optional; unset means `/staff` is open with no sign-in)
 - `REPLY_TIMEOUT_S` (default 120)
 - `ASK_DEFAULT=off`, `CARDS_CHAT_DEFAULT=off` (start those console switches off; both start on)
+- `ANTHROPIC_API_KEY` (turns on suggested replies), `DRAFT_MODEL_DEFAULT` (default `claude-sonnet-5-5`), `DRAFTS_DEFAULT=off` (start with automatic drafts off), `DRAFT_FAKE=1` (canned drafts for trying the console without a key; the `kiosk-fake-drafts` launch config sets it)
 - `VOICE_ENGINE_DEFAULT=live|server|browser` (where the Voice transcription setting starts; default `live`), `SHOW_INDEX_DEFAULT=on` (start with the Prototype index link shown)
 - `OPENAI_API_KEY` (turns on server transcription), `OPENAI_TRANSCRIBE_MODEL` (default `gpt-4o-transcribe`), `OPENAI_LIVE_MODEL` (default `gpt-live-transcribe`), `OPENAI_REALTIME_URL` (default `wss://api.openai.com/v1/realtime?intent=transcription`), `TRANSCRIBE_FAKE=1` (canned transcript, for testing without a key)
 - `RELAY_PORT` or `PORT`
@@ -178,7 +181,7 @@ The site is installable as a full-screen app: `app/public/manifest.webmanifest` 
 
 The open items for Cut 2 (the two-week patron run) are tracked in `entrance-kiosk/BUILD-entrance-kiosk.md`. In short:
 
-- **No catalog sync.** Content is hand-written JSON in the repo. `catalog/main-library/` doesn't exist yet. Its entries come from the desk staff and then the question log.
+- **Catalog sync covers the drafts only.** The suggested replies read the synced catalog; the kiosk's own screens are still hand-written JSON. `catalog/main-library/` doesn't exist yet, so drafts for entrance questions (restrooms, library cards) come back "no fact covers this" until it does.
 - **No placeholder build gate.** A patron-facing build must fail on any placeholder fact. Nothing here is patron-facing yet.
 - **Log retention is undecided** (decision 2). The relay keeps everything in memory only, and the CSV export is manual.
 - **The live run needs:**

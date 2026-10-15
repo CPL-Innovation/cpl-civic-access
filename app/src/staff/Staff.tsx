@@ -13,10 +13,14 @@ import { API } from '../lib/api';
 import { Icon } from '../lib/Icon';
 import './staff.css';
 
-interface Msg { id: string; from: 'patron' | 'staff' | 'system'; text: string; at: number; locked?: string; source?: { kind: string; detail?: string }; vote?: 'up' | 'down' | null }
-interface Thread { id: string; kiosk: string; context: string; startedAt: number; updatedAt: number; status: 'waiting' | 'answered' | 'timedout' | 'handed' | 'closed'; open: boolean; closedReason?: string; urgent: boolean; bot: boolean; messages: Msg[] }
+interface Msg { id: string; from: 'patron' | 'staff' | 'system'; text: string; at: number; locked?: string; draft?: 'as-is' | 'edited' | 'not used'; source?: { kind: string; detail?: string }; vote?: 'up' | 'down' | null }
+interface DraftFact { ref: string; label: string; provenance: string; lastVerified?: string | null }
+interface Draft { status: 'drafting' | 'ready' | 'error'; forMessage: string; model: string; kind?: 'answer' | 'locked' | 'no_fact'; text?: string; lockedId?: string; note?: string; facts?: DraftFact[]; unknownRefs?: string[]; placeholders?: number; ms?: number; error?: string }
+interface Thread { id: string; kiosk: string; context: string; startedAt: number; updatedAt: number; status: 'waiting' | 'answered' | 'timedout' | 'handed' | 'closed'; open: boolean; closedReason?: string; urgent: boolean; bot: boolean; messages: Msg[]; draft?: Draft }
+interface ModelChoice { id: string; label: string; note: string }
+interface DraftSettings { on: boolean; model: string; available: boolean; models: ModelChoice[] }
 interface Features { cardsOpenChat: boolean; showIndex?: boolean; voiceEngine?: 'live' | 'server' | 'browser' }
-interface Settings { passcodeRequired?: boolean; transcribe?: boolean; features?: Features; askOn: boolean; ignoreHours: boolean; hoursSet: boolean; insideHours: boolean; endDate: string | null; kiosksOnline: number; replyTimeoutS: number; available: boolean; reason: string }
+interface Settings { drafts?: DraftSettings; passcodeRequired?: boolean; transcribe?: boolean; features?: Features; askOn: boolean; ignoreHours: boolean; hoursSet: boolean; insideHours: boolean; endDate: string | null; kiosksOnline: number; replyTimeoutS: number; available: boolean; reason: string }
 interface Copy { id: string; label: string; text: string }
 interface Content { locked: { bot: Copy; emergency: Copy }; saved: Copy[]; directory: { id: string; name: string }[] }
 
@@ -171,8 +175,8 @@ function Console({ token, onSignOut }: { token: string; onSignOut: () => void })
       </div>
 
       {panel && settings && (
-        <SettingsPanel features={settings.features || { cardsOpenChat: false }} askAvailable={settings.available} transcribe={!!settings.transcribe}
-          onChange={(f) => api('/api/staff/settings', { features: f })} onClose={() => setPanel(false)} />
+        <SettingsPanel features={settings.features || { cardsOpenChat: false }} askAvailable={settings.available} transcribe={!!settings.transcribe} drafts={settings.drafts}
+          onChange={(f) => api('/api/staff/settings', { features: f })} onDrafts={(d) => api('/api/staff/settings', { drafts: d })} onClose={() => setPanel(false)} />
       )}
       <div className="st-body">
         <aside className="st-queue" aria-label="Questions">
@@ -212,8 +216,9 @@ function Console({ token, onSignOut }: { token: string; onSignOut: () => void })
   );
 }
 
-/** Patron-facing settings. Each switch changes what the kiosk does, live. Add new ones as rows here. */
-function SettingsPanel({ features, askAvailable, transcribe, onChange, onClose }: { features: Features; askAvailable: boolean; transcribe: boolean; onChange: (f: Partial<Features>) => void; onClose: () => void }) {
+/** Settings: the kiosk's patron-facing switches, then the console's own (AI drafts). Each applies live. Add new ones as rows here. */
+function SettingsPanel({ features, askAvailable, transcribe, drafts, onChange, onDrafts, onClose }: { features: Features; askAvailable: boolean; transcribe: boolean; drafts?: DraftSettings; onChange: (f: Partial<Features>) => void; onDrafts: (d: Partial<DraftSettings>) => void; onClose: () => void }) {
+  const [customModel, setCustomModel] = useState('');
   const engine = features.voiceEngine || 'live';
   useEffect(() => {
     const k = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -225,10 +230,44 @@ function SettingsPanel({ features, askAvailable, transcribe, onChange, onClose }
       <div className="st-scrim" onClick={onClose} />
       <aside className="st-panel" id="st-settings" role="dialog" aria-modal="true" aria-labelledby="st-settings-t">
         <div className="st-panel-h">
-          <h2 id="st-settings-t">Patron-facing settings</h2>
+          <h2 id="st-settings-t">Settings</h2>
           <button className="st-btn" onClick={onClose} autoFocus>Close</button>
         </div>
-        <p className="st-panel-lead">Changes reach the kiosk right away. They reset when the relay restarts.</p>
+        <p className="st-panel-lead">Changes apply right away. They reset when the relay restarts.</p>
+
+        {drafts && (
+          <section className="st-setting column">
+            <div className="st-setting-head">
+              <div className="st-setting-text">
+                <h3 id="st-drafts-h">Suggested replies (AI)</h3>
+                <p>When a patron asks something, Claude reads the conversation and the facts library and drafts a reply for you. You review it, edit it if needed, and send it. Nothing goes to the kiosk without you. Patrons aren’t told a draft was used.</p>
+                <p className="st-hint">Off: no automatic drafts. “Draft a reply” in a conversation still asks for one.</p>
+              </div>
+              <button className={'st-toggle light' + (drafts.on ? ' on' : '')} role="switch" aria-checked={drafts.on} disabled={!drafts.available}
+                aria-label="Suggested replies" onClick={() => onDrafts({ on: !drafts.on })}>
+                <span className="st-sw" aria-hidden="true" /><b>{drafts.on ? 'On' : 'Off'}</b>
+              </button>
+            </div>
+            <div className="st-choices" role="radiogroup" aria-label="Drafting model">
+              {drafts.models.map((m) => (
+                <label key={m.id} className={'st-choice' + (drafts.model === m.id ? ' on' : '')}>
+                  <input type="radio" name="draft-model" checked={drafts.model === m.id} onChange={() => onDrafts({ model: m.id })} />
+                  <span><b>{m.label}</b> · {m.note}<br /><code>{m.id}</code></span>
+                </label>
+              ))}
+              {!drafts.models.some((m) => m.id === drafts.model) && (
+                <label className="st-choice on"><input type="radio" name="draft-model" checked readOnly /><span><b>Custom</b><br /><code>{drafts.model}</code></span></label>
+              )}
+            </div>
+            <form className="st-row" onSubmit={(e) => { e.preventDefault(); if (customModel.trim()) { onDrafts({ model: customModel.trim() }); setCustomModel(''); } }}>
+              <input className="st-named" value={customModel} onChange={(e) => setCustomModel(e.target.value)} placeholder="Other model id, e.g. claude-sonnet-5-5" aria-label="Other model id" />
+              <button className="st-btn" disabled={!customModel.trim()}>Use this model</button>
+            </form>
+            {!drafts.available && <p className="st-warn" role="status">Drafts aren’t set up on this relay (no ANTHROPIC_API_KEY).</p>}
+          </section>
+        )}
+
+        <h3 className="st-panel-sub">On the kiosk</h3>
 
         <section className="st-setting">
           <div className="st-setting-text">
@@ -288,6 +327,8 @@ function Conversation({ thread, content, settings, now, api }: { thread: Thread;
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
   const [confirmDel, setConfirmDel] = useState(false);
+  /** Set when the draft was put in the box, so the log can tell "edited" from "not used". */
+  const [draftUsed, setDraftUsed] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
   const boxRef = useRef<HTMLTextAreaElement>(null);
   useEffect(() => { endRef.current?.scrollIntoView({ block: 'end' }); }, [thread.messages.length]);
@@ -308,8 +349,18 @@ function Conversation({ thread, content, settings, now, api }: { thread: Thread;
   const sendTyped = async () => {
     if (!text.trim()) return;
     const source = kind === 'catalog' ? { kind, detail } : kind === 'named' ? { kind, detail: named } : { kind: 'none' };
-    if (await reply({ text, source })) { setText(''); }
+    if (await reply({ text, source, draftUsed })) { setText(''); setDraftUsed(false); setKind('none'); }
   };
+  const draft = thread.draft && thread.draft.forMessage === waitingFor?.id ? thread.draft : undefined;
+  const draftSource = (d: Draft) => ({ kind: 'catalog', detail: (d.lockedId || (d.facts || []).map((f) => f.ref).join(', ')).slice(0, 120) });
+  const useDraft = (d: Draft) => {
+    setText(d.text || ''); setDraftUsed(true);
+    if (d.facts?.length || d.lockedId) { setKind('catalog'); setDetail(draftSource(d).detail); }
+    boxRef.current?.focus();
+  };
+  const sendDraft = async (d: Draft) => { if (await reply({ text: d.text, source: draftSource(d), draftUsed: true })) { setText(''); setDraftUsed(false); setKind('none'); } };
+  const redraft = async () => { setErr(''); const r = await api('/api/staff/draft', { threadId: thread.id }).catch(() => null); if (r && !r.ok) setErr((await r.json().catch(() => ({}))).error || 'Couldn’t start a draft.'); };
+  const modelName = (id: string) => settings?.drafts?.models.find((m) => m.id === id)?.label || id;
 
   return (
     <>
@@ -343,6 +394,7 @@ function Conversation({ thread, content, settings, now, api }: { thread: Thread;
                   {m.from === 'patron' ? 'Patron' : 'You'} · {new Date(m.at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', second: '2-digit' })}
                   {m.locked && <> · locked copy</>}
                   {m.from === 'staff' && !m.locked && <> · source: {m.source?.kind === 'catalog' ? 'catalog · ' + placeName(m.source.detail) : m.source?.kind === 'named' ? m.source.detail : 'none (candidate catalog entry)'}</>}
+                  {m.draft && <> · draft {m.draft === 'as-is' ? 'sent as is' : m.draft}</>}
                   {m.vote && <> · patron said <b>{m.vote === 'up' ? 'Helpful' : 'Not helpful'}</b></>}
                 </div>
               </>
@@ -356,6 +408,10 @@ function Conversation({ thread, content, settings, now, api }: { thread: Thread;
         <div className="st-closed">This patron’s session has ended. The kiosk erased the conversation, so they can’t see replies.</div>
       ) : (
         <div className="st-compose">
+          {settings?.drafts?.available && waitingFor && thread.messages.filter((m) => m.from !== 'system').at(-1)?.from === 'patron' && (
+            <DraftCard draft={draft} modelName={modelName} busy={busy} tagged={tagged}
+              onUse={useDraft} onSend={sendDraft} onRedraft={redraft} />
+          )}
           <div className="st-locked">
             <span className="st-label">Locked answers — one tap, can’t be edited</span>
             <div className="st-row">
@@ -385,6 +441,7 @@ function Conversation({ thread, content, settings, now, api }: { thread: Thread;
             {kind === 'catalog' && (
               <select value={detail} onChange={(e) => setDetail(e.target.value)} aria-label="Which catalog entry">
                 <option value="">Which entry?</option>
+                {detail && !places.some((p) => p.id === detail) && <option value={detail}>From the draft: {detail}</option>}
                 {places.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
             )}
@@ -398,6 +455,46 @@ function Conversation({ thread, content, settings, now, api }: { thread: Thread;
         </div>
       )}
     </>
+  );
+}
+
+/** The AI draft for the latest patron question: review it, then send as is, edit it in the box, or redraft. */
+function DraftCard({ draft, modelName, busy, tagged, onUse, onSend, onRedraft }: {
+  draft?: Draft; modelName: (id: string) => string; busy: boolean; tagged: (s: string) => React.ReactNode;
+  onUse: (d: Draft) => void; onSend: (d: Draft) => void; onRedraft: () => void;
+}) {
+  if (!draft) return (
+    <div className="st-draft idle"><span className="st-label">Suggested reply</span><button className="st-btn" onClick={onRedraft}><Icon n="spark" />Draft a reply</button></div>
+  );
+  const head = <span className="st-label">Suggested reply · {modelName(draft.model)}{draft.ms ? ` · ${(draft.ms / 1000).toFixed(1)} s` : ''}</span>;
+  if (draft.status === 'drafting') return <div className="st-draft busy" aria-busy="true">{head}<p className="st-draft-wait"><span className="st-dots" aria-hidden="true"><i /><i /><i /></span>Reading the conversation and the facts library…</p></div>;
+  if (draft.status === 'error') return <div className="st-draft err">{head}<p>{draft.error || 'The draft didn’t work.'}</p><div className="st-row"><button className="st-btn" onClick={onRedraft}>Try again</button></div></div>;
+  if (draft.kind === 'no_fact') return (
+    <div className="st-draft none">{head}
+      <p><b>No fact in the library covers this.</b> {draft.note}</p>
+      <p className="st-hint">Write it yourself. With no source it’s logged as a candidate catalog entry.</p>
+      <div className="st-row"><button className="st-btn" onClick={onRedraft}>Redraft</button></div>
+    </div>
+  );
+  return (
+    <div className={'st-draft ready' + (draft.kind === 'locked' ? ' locked' : '')}>
+      {head}
+      <div className="st-draft-text">{tagged(draft.text || '')}</div>
+      {draft.kind === 'locked' && <p className="st-hint">Locked copy from the catalog ({draft.lockedId}). It sends exactly as written.</p>}
+      {draft.note && <p className="st-draft-note">{draft.note}</p>}
+      {!!draft.placeholders && <p className="st-warn">Uses {draft.placeholders} placeholder{draft.placeholders > 1 ? 's' : ''}: the library doesn’t know {draft.placeholders > 1 ? 'these values' : 'this value'} yet. The patron will see a placeholder tag unless you replace it.</p>}
+      {!!draft.unknownRefs?.length && <p className="st-warn">Cited facts that aren’t in the library: {draft.unknownRefs.join(', ')}. Check before sending.</p>}
+      {!!draft.facts?.length && (
+        <ul className="st-facts" aria-label="Facts used">
+          {draft.facts.map((f) => <li key={f.ref} className={'st-fact ' + f.provenance} title={f.ref}>{f.label}<b>{f.provenance === 'verified' && f.lastVerified ? 'verified ' + f.lastVerified : f.provenance}</b></li>)}
+        </ul>
+      )}
+      <div className="st-row">
+        {draft.kind !== 'locked' && <button className="st-btn" onClick={() => onUse(draft)}>Edit in the box</button>}
+        <button className="st-btn" onClick={onRedraft}>Redraft</button>
+        <button className="st-btn p" disabled={busy} onClick={() => onSend(draft)}>Send as is<Icon n="right" /></button>
+      </div>
+    </div>
   );
 }
 

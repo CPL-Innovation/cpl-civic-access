@@ -1,0 +1,989 @@
+{
+  "_generated": "GENERATED from the vault catalog by scripts/sync-catalog.mjs. Do not edit: fix the fact in the vault, then run npm run catalog:sync.",
+  "syncedAt": "2026-10-15T21:00:31.940Z",
+  "sections": {
+    "techcentral": [
+      {
+        "file": "techcentral/journeys/3d-printing.md",
+        "id": "3d-printing-journey",
+        "type": "journey",
+        "title": "I want to 3D print something",
+        "status": "draft",
+        "reviewed_by": null,
+        "last_reviewed": null,
+        "uses": [
+          "3d-printing",
+          "3d-printing-rules",
+          "makerspace",
+          "staff-desk"
+        ],
+        "overview": {
+          "screen": "M0",
+          "summary": "Most people bring a file and our staff print it for you. It usually takes {{3d-printing.turnaround}}.",
+          "cost": "Cost: {{3d-printing.cost}} The 3D material fee is {{3d-printing.material_fee}}.",
+          "before_you_go": [
+            "{{makerspace.access_id}}",
+            "Makerspace hours: {{makerspace.hours}}",
+            "{{makerspace.reservations}} Reserve at {{makerspace.reservation_url}}"
+          ],
+          "gallery": [
+            {
+              "media": "media/3d-example-01.jpg",
+              "alt": "[DRAFT]"
+            }
+          ],
+          "rules_link": "See the rules first"
+        },
+        "lane_chooser": {
+          "screen": "M1",
+          "question": "Which way is right for you?",
+          "lanes": {
+            "staff": {
+              "title": "We print it for you",
+              "badge": "Recommended for your first print",
+              "description": "You bring the file; staff set up and run the printer.",
+              "reassurance": "Most people start here, including people who've printed before. Our staff know these machines' quirks."
+            },
+            "self": {
+              "title": "Run it yourself",
+              "description": "For people who've been checked out on our printers: {{3d-printing.self_serve_qualification}}"
+            }
+          },
+          "self_check": [
+            "Have you used a 3D printer before?",
+            "Have you done a TechCentral orientation or been signed off?",
+            "Do you know how to slice a file?"
+          ],
+          "suggestion_rule": "All three 'yes' → suggest Run it yourself. Anything else → suggest We print it for you. The patron still chooses."
+        },
+        "lane_staff": {
+          "steps": [
+            {
+              "title": "Get a print-ready file",
+              "text": "Find a model at {{3d-printing.model_sources}}. We accept {{3d-printing.accepted_file_types}}."
+            },
+            {
+              "title": "Check it",
+              "text": "It has to fit {{3d-printing.max_size}} and print in under {{3d-printing.max_print_time}}. And it can't be on the not-allowed list.",
+              "link": "rules"
+            },
+            {
+              "title": "Submit it",
+              "text": "{{3d-printing.submit_how}}"
+            },
+            {
+              "title": "What happens next",
+              "text": "It usually takes {{3d-printing.turnaround}}. We'll let you know: {{3d-printing.notify_how}}. Pick it up within {{3d-printing.pickup_window}}. After that: {{3d-printing.unclaimed}}."
+            }
+          ],
+          "show_staff_summary": "I'd like you to 3D print a file for me."
+        },
+        "lane_self": {
+          "steps": [
+            {
+              "title": "What 'ready' means",
+              "text": "{{3d-printing.self_serve_qualification}}"
+            },
+            {
+              "title": "Book a printer",
+              "text": "{{3d-printing.booking_how}}",
+              "handoff_url": "{{makerspace.reservation_url}}"
+            },
+            {
+              "title": "At the machine",
+              "text": "Open the step-by-step on your phone or use the card beside the printer.",
+              "reference_mode": true,
+              "safety": "{{3d-printing-rules.safety_at_machine}}"
+            },
+            {
+              "title": "If a print fails",
+              "link": "failures"
+            }
+          ],
+          "show_staff_summary": "I'd like to run a 3D print myself."
+        },
+        "failures": [
+          {
+            "id": "not-sticking",
+            "choice": "It's not sticking to the bed",
+            "fixes": [
+              "[DRAFT: from staff]"
+            ]
+          },
+          {
+            "id": "spaghetti",
+            "choice": "It turned into a spaghetti mess",
+            "fixes": [
+              "[DRAFT: from staff]"
+            ]
+          },
+          {
+            "id": "stopped",
+            "choice": "It stopped partway",
+            "fixes": [
+              "[DRAFT: from staff]"
+            ]
+          },
+          {
+            "id": "smoke-smell-noise",
+            "choice": "Strange smell, smoke, or noise",
+            "locked_copy": "safety-stop"
+          }
+        ],
+        "staff_fallback": "Staff can help. They're at the desk, {{staff-desk.direction_from_kiosk}}.",
+        "assistant_chips": [
+          "Which way should I choose?",
+          "How long will my print take?",
+          "What can't I print?",
+          "Do I need an ID?"
+        ]
+      },
+      {
+        "file": "techcentral/journeys/assistant-and-fixed-copy.md",
+        "id": "assistant-and-fixed-copy",
+        "type": "copy",
+        "title": "Assistant messages and fixed copy",
+        "status": "draft",
+        "reviewed_by": null,
+        "last_reviewed": null,
+        "uses": [
+          "staff-desk",
+          "3d-printing-rules"
+        ],
+        "messages": {
+          "safety-stop": {
+            "locked": true,
+            "needs_signoff_from": "TechCentral content owner",
+            "text": "Stop the printer if it's safe to, and tell staff right now. They're at the desk, {{staff-desk.direction_from_kiosk}}."
+          },
+          "privacy-notice": {
+            "locked": true,
+            "text": "This screen is public. Don't type personal information. Everything is erased when you finish."
+          },
+          "refusal-not-in-guide": {
+            "locked": true,
+            "text": "I don't have that in TechCentral's guide, so I don't want to guess. Staff at the desk can help. They're {{staff-desk.direction_from_kiosk}}."
+          },
+          "refusal-judgment-call": {
+            "locked": true,
+            "text": "Here's the rule: {rule}. Whether your print fits is a staff call. Show them your file at the desk.",
+            "note": "{rule} = a quoted fact from 3d-printing-rules, inserted at runtime by the assistant. The only slot it may fill."
+          },
+          "refusal-off-topic": {
+            "locked": true,
+            "text": "I can only help with printing and 3D printing here. For anything else, staff can point you the right way."
+          },
+          "answer-label": {
+            "locked": true,
+            "text": "AI answer · from TechCentral's guide · checked {date}"
+          },
+          "idle-warning": {
+            "locked": false,
+            "text": "Still there? We'll start over for the next person in {seconds} seconds."
+          }
+        },
+        "hard_limits": [
+          "Put a patron in the Run it yourself path",
+          "Approve or reject a specific print",
+          "Rule on whether an item is prohibited",
+          "Waive or change a cost",
+          "Answer from a placeholder fact",
+          "Answer safety symptoms with anything other than safety-stop"
+        ]
+      },
+      {
+        "file": "techcentral/journeys/print-plan.md",
+        "id": "print-plan",
+        "type": "journey",
+        "title": "Your printing plan",
+        "status": "draft",
+        "reviewed_by": null,
+        "last_reviewed": null,
+        "uses": [
+          "printing",
+          "patron-computers",
+          "release-station",
+          "staff-desk"
+        ],
+        "question": {
+          "text": "Where's your file?",
+          "screen": "P0"
+        },
+        "variants": {
+          "phone": {
+            "choice": "On my phone",
+            "supported": "{{printing.source_phone}}",
+            "steps": [
+              {
+                "text": "Send your file to the printer from your phone: {{printing.source_phone}}.",
+                "detail": "[DRAFT: step-by-step for the phone method, once confirmed]",
+                "media": "media/printing-phone-method.jpg",
+                "alt": "[DRAFT: what the phone print screen looks like]"
+              },
+              {
+                "text": "Go to the release station, {{release-station.direction_from_kiosk}}.",
+                "media": "media/release-station-overview.jpg",
+                "alt": "[DRAFT: the release station, as seen from the entrance]"
+              },
+              {
+                "text": "Find your job, pay, and print. You'll need {{printing.release_needs}}.",
+                "detail": "Black-and-white is {{printing.price_bw}} a page. Color is {{printing.price_color}} a page. You can pay with {{printing.payment_methods}}.",
+                "media": "media/release-station-job-list.jpg",
+                "alt": "[DRAFT: the release screen's job list]"
+              }
+            ],
+            "show_staff_summary": "I'd like to print from my phone."
+          },
+          "usb": {
+            "choice": "On a USB drive",
+            "supported": "{{printing.source_usb}}",
+            "steps": [
+              {
+                "text": "Sit at any patron computer and log in with {{patron-computers.login_method}}.",
+                "detail": "No library card? {{patron-computers.guest_access}}",
+                "media": "media/patron-computers-overview.jpg",
+                "alt": "[DRAFT: the patron computers]"
+              },
+              {
+                "text": "Plug in your USB drive, open your file, and choose Print → {{printing.printer_name}}.",
+                "media": "media/print-dialog-printer-choice.png",
+                "alt": "[DRAFT: the print window, with the right printer selected]"
+              },
+              {
+                "text": "Go to the release station, {{release-station.direction_from_computers}}.",
+                "media": "media/release-station-overview.jpg",
+                "alt": "[DRAFT: the release station, as seen from the computers]"
+              },
+              {
+                "text": "Find your job, pay, and print. You'll need {{printing.release_needs}}.",
+                "detail": "Black-and-white is {{printing.price_bw}} a page. Color is {{printing.price_color}} a page. You can pay with {{printing.payment_methods}}.",
+                "media": "media/release-station-job-list.jpg",
+                "alt": "[DRAFT: the release screen's job list]"
+              }
+            ],
+            "show_staff_summary": "I'd like to print a file from my USB drive."
+          },
+          "email": {
+            "choice": "In my email",
+            "supported": "{{printing.source_email}}",
+            "steps": [
+              {
+                "text": "Sit at any patron computer and log in with {{patron-computers.login_method}}.",
+                "detail": "No library card? {{patron-computers.guest_access}}",
+                "media": "media/patron-computers-overview.jpg",
+                "alt": "[DRAFT: the patron computers]"
+              },
+              {
+                "text": "Open your email, download the file, open it, and choose Print → {{printing.printer_name}}.",
+                "detail": "[DRAFT: or, if supported, forward it to the print address: {{printing.source_email}}]",
+                "media": "media/print-dialog-printer-choice.png",
+                "alt": "[DRAFT: the print window, with the right printer selected]"
+              },
+              {
+                "text": "Go to the release station, {{release-station.direction_from_computers}}.",
+                "media": "media/release-station-overview.jpg",
+                "alt": "[DRAFT: the release station, as seen from the computers]"
+              },
+              {
+                "text": "Find your job, pay, and print. You'll need {{printing.release_needs}}.",
+                "detail": "Black-and-white is {{printing.price_bw}} a page. Color is {{printing.price_color}} a page. You can pay with {{printing.payment_methods}}.",
+                "media": "media/release-station-job-list.jpg",
+                "alt": "[DRAFT: the release screen's job list]"
+              }
+            ],
+            "show_staff_summary": "I'd like to print something from my email."
+          },
+          "make-here": {
+            "choice": "I need to type or make it on a computer here",
+            "supported": "{{patron-computers.can_make_documents}}",
+            "steps": [
+              {
+                "text": "Sit at any patron computer and log in with {{patron-computers.login_method}}.",
+                "detail": "No library card? {{patron-computers.guest_access}} Sessions are {{patron-computers.session_limit}}.",
+                "media": "media/patron-computers-overview.jpg",
+                "alt": "[DRAFT: the patron computers]"
+              },
+              {
+                "text": "Make your document using {{patron-computers.can_make_documents}}."
+              },
+              {
+                "text": "Choose Print → {{printing.printer_name}}.",
+                "media": "media/print-dialog-printer-choice.png",
+                "alt": "[DRAFT: the print window, with the right printer selected]"
+              },
+              {
+                "text": "Go to the release station, {{release-station.direction_from_computers}}.",
+                "media": "media/release-station-overview.jpg",
+                "alt": "[DRAFT: the release station, as seen from the computers]"
+              },
+              {
+                "text": "Find your job, pay, and print. You'll need {{printing.release_needs}}.",
+                "detail": "Black-and-white is {{printing.price_bw}} a page. Color is {{printing.price_color}} a page. You can pay with {{printing.payment_methods}}.",
+                "media": "media/release-station-job-list.jpg",
+                "alt": "[DRAFT: the release screen's job list]"
+              }
+            ],
+            "show_staff_summary": "I need to make a document and print it."
+          }
+        },
+        "summary": [
+          "Cost: black-and-white {{printing.price_bw}} a page; color {{printing.price_color}} a page.",
+          "Your job waits {{printing.hold_time}} at the release station.",
+          "Bring: {{printing.release_needs}}."
+        ],
+        "assistant_chips": [
+          "How much will this cost?",
+          "What if I don't have a library card?",
+          "Can I print in color?"
+        ]
+      },
+      {
+        "file": "techcentral/journeys/print-troubleshooter.md",
+        "id": "print-troubleshooter",
+        "type": "journey",
+        "title": "My print didn't come out",
+        "status": "draft",
+        "reviewed_by": null,
+        "last_reviewed": null,
+        "uses": [
+          "printing",
+          "release-station",
+          "patron-computers",
+          "staff-desk"
+        ],
+        "question": {
+          "text": "What happened?",
+          "screen": "PX"
+        },
+        "symptoms": [
+          {
+            "id": "job-not-there",
+            "choice": "My job isn't at the release station",
+            "cause": "Your job may have gone to a different printer, or it waited longer than {{printing.hold_time}} and was cleared.",
+            "fixes": [
+              "On the release screen, check you're looking under the right name: {{printing.release_needs}}.",
+              "On the computer, check that you chose {{printing.printer_name}} when you printed.",
+              "If it's been more than {{printing.hold_time}}, send it again."
+            ]
+          },
+          {
+            "id": "not-enough-money",
+            "choice": "It says I don't have enough money",
+            "cause": "There isn't enough on your card for this print.",
+            "fixes": [
+              "Add money: {{printing.add_money_how}}.",
+              "Black-and-white costs less: {{printing.price_bw}} a page, compared with {{printing.price_color}} for color."
+            ]
+          },
+          {
+            "id": "wrong-output",
+            "choice": "It printed the wrong thing, wrong size, or cut off",
+            "cause": "[DRAFT: usually the page size or scale setting in the print window]",
+            "fixes": [
+              "[DRAFT: check page size / 'fit to page' in the print window]",
+              "[DRAFT: refund or reprint policy for wrong prints: needs a fact]"
+            ]
+          },
+          {
+            "id": "card-not-working",
+            "choice": "My card or guest pass doesn't work",
+            "cause": "[DRAFT: depends on the release system: {{printing.print_system}}]",
+            "fixes": [
+              "[DRAFT: once the release system is known]"
+            ]
+          },
+          {
+            "id": "phone-printing",
+            "choice": "I can't print from my phone",
+            "cause": "[DRAFT]",
+            "fixes": [
+              "How phone printing works here: {{printing.source_phone}}.",
+              "[DRAFT: the most common phone-printing mistake, from staff]"
+            ]
+          },
+          {
+            "id": "something-else",
+            "choice": "Something else",
+            "route": "assistant"
+          }
+        ],
+        "staff_fallback": "Still stuck? Staff can sort this out. They're at the desk, {{staff-desk.direction_from_kiosk}}.",
+        "assistant_chips": [
+          "My job printed but it's blank",
+          "Can I get a refund for a bad print?",
+          "How do I print just one page?"
+        ]
+      },
+      {
+        "file": "techcentral/places/makerspace.md",
+        "id": "makerspace",
+        "type": "place",
+        "title": "Makerspace (3D printers)",
+        "owner": "[PLACEHOLDER: named TechCentral content owner]",
+        "review_every_days": 90,
+        "facts": {
+          "location": {
+            "label": "Where the 3D printers are",
+            "value": "Inside TechCentral: Main Library, Louis Stokes Wing, Lower Level",
+            "provenance": "harvested",
+            "last_verified": null,
+            "source": "CPL website, TechCentral page (copied by Jungu, 2026-10-14). The page gives TechCentral's location; confirm where the 3D printers sit within it."
+          },
+          "direction_from_kiosk": {
+            "label": "How to get there from the entrance kiosk",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending: confirm once the kiosk is placed"
+          },
+          "hours": {
+            "label": "Hours the makerspace is open",
+            "value": "Monday–Saturday, 10:00am–5:30pm. Closed Sundays.",
+            "provenance": "harvested",
+            "last_verified": null,
+            "source": "CPL website, TechCentral page (copied by Jungu, 2026-10-14)"
+          },
+          "staffed_hours": {
+            "label": "Hours staff are in the makerspace, if different",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending: TechCentral lead interview"
+          },
+          "cost_model": {
+            "label": "How the makerspace is paid for",
+            "value": "Free to use. Material fees apply.",
+            "provenance": "harvested",
+            "last_verified": null,
+            "source": "CPL website, TechCentral page (copied by Jungu, 2026-10-14)"
+          },
+          "access_id": {
+            "label": "What to bring for equipment",
+            "value": "Bring a physical photo ID for equipment access.",
+            "provenance": "harvested",
+            "last_verified": null,
+            "source": "CPL website, TechCentral page (copied by Jungu, 2026-10-14)"
+          },
+          "reservations": {
+            "label": "Are reservations needed?",
+            "value": "Reservations are encouraged.",
+            "provenance": "harvested",
+            "last_verified": null,
+            "source": "CPL website, TechCentral page (copied by Jungu, 2026-10-14). 'Encouraged', not required: confirm walk-ins are accepted."
+          },
+          "reservation_url": {
+            "label": "Where to reserve",
+            "value": "https://cpl.libcal.com/reserve/MakerSpace",
+            "provenance": "harvested",
+            "last_verified": null,
+            "source": "CPL website, TechCentral page (copied by Jungu, 2026-10-14)"
+          },
+          "equipment": {
+            "label": "Equipment in the makerspace",
+            "value": "Laser engravers; embroidery machine; sewing and serger machines; large-format printer; direct-to-garment printer; t-shirt and mug heat presses; 3D printer; sublimation printer; UV printer; vacuum former; button and magnet maker; vinyl cutter and Cricut; photography light box; design software; lamination machine.",
+            "provenance": "harvested",
+            "last_verified": null,
+            "source": "CPL website, TechCentral page (copied by Jungu, 2026-10-14)"
+          }
+        }
+      },
+      {
+        "file": "techcentral/places/patron-computers.md",
+        "id": "patron-computers",
+        "type": "place",
+        "title": "Patron computers",
+        "owner": "[PLACEHOLDER: named TechCentral content owner]",
+        "review_every_days": 90,
+        "facts": {
+          "location": {
+            "label": "Where the patron computers are",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending: TechCentral lead interview"
+          },
+          "login_method": {
+            "label": "How patrons log in (library card number / guest pass / other)",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending: TechCentral lead interview"
+          },
+          "guest_access": {
+            "label": "Can someone without a library card use a computer? How?",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending: TechCentral lead interview"
+          },
+          "session_limit": {
+            "label": "Time limit per session, if any",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending: TechCentral lead interview"
+          },
+          "can_make_documents": {
+            "label": "Software available for typing or making a document (e.g. a word processor)",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending: the website lists photo, video, and design software, but not whether there's a word processor. Confirm."
+          },
+          "count_and_software": {
+            "label": "How many computers, and what's on them",
+            "value": "Nearly 90 public computers with photo, video, and design software.",
+            "provenance": "harvested",
+            "last_verified": null,
+            "source": "CPL website, TechCentral page (copied by Jungu, 2026-10-14)"
+          }
+        }
+      },
+      {
+        "file": "techcentral/places/release-station.md",
+        "id": "release-station",
+        "type": "place",
+        "title": "Print release station",
+        "owner": "[PLACEHOLDER: named TechCentral content owner]",
+        "review_every_days": 90,
+        "facts": {
+          "location": {
+            "label": "Where the release station is (patron words)",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending: TechCentral lead interview"
+          },
+          "direction_from_computers": {
+            "label": "How to get there from the patron computers",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending: TechCentral lead interview"
+          },
+          "direction_from_kiosk": {
+            "label": "How to get there from the entrance kiosk",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending: confirm once the kiosk is placed"
+          }
+        }
+      },
+      {
+        "file": "techcentral/places/staff-desk.md",
+        "id": "staff-desk",
+        "type": "place",
+        "title": "TechCentral staff desk",
+        "owner": "[PLACEHOLDER: named TechCentral content owner]",
+        "review_every_days": 90,
+        "facts": {
+          "location": {
+            "label": "Where the desk is (patron words)",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending: TechCentral lead interview"
+          },
+          "direction_from_kiosk": {
+            "label": "Direction from the entrance kiosk (\"to your left\")",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending: confirm once the kiosk is placed"
+          },
+          "staffed_hours": {
+            "label": "Hours the desk is staffed, by day",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending. TechCentral is open Mon–Sat 10am–6pm and the makerspace until 5:30pm (website). Confirm the desk is staffed for all of it."
+          },
+          "phone": {
+            "label": "Desk phone number, if patrons can call",
+            "value": "(216) 623-2980",
+            "provenance": "harvested",
+            "last_verified": null,
+            "source": "CPL website, TechCentral page (copied by Jungu, 2026-10-14). TechCentral's general number. Confirm it reaches the desk during staffed hours."
+          }
+        }
+      },
+      {
+        "file": "techcentral/places/techcentral.md",
+        "id": "techcentral",
+        "type": "place",
+        "title": "TechCentral",
+        "owner": "[PLACEHOLDER: named TechCentral content owner]",
+        "review_every_days": 90,
+        "facts": {
+          "name": {
+            "label": "Venue name",
+            "value": "TechCentral",
+            "provenance": "harvested",
+            "last_verified": null,
+            "source": "CPL website, TechCentral page (copied by Jungu, 2026-10-14)"
+          },
+          "address": {
+            "label": "Street address",
+            "value": "525 Superior Ave, Cleveland, OH 44114",
+            "provenance": "harvested",
+            "last_verified": null,
+            "source": "CPL website, TechCentral page (copied by Jungu, 2026-10-14)"
+          },
+          "location_in_building": {
+            "label": "Where TechCentral is in the building",
+            "value": "Main Library, Louis Stokes Wing, Lower Level",
+            "provenance": "harvested",
+            "last_verified": null,
+            "source": "CPL website, TechCentral page (copied by Jungu, 2026-10-14)"
+          },
+          "hours": {
+            "label": "Opening hours",
+            "value": "Monday–Saturday, 10:00am–6:00pm. Closed Sundays.",
+            "provenance": "harvested",
+            "last_verified": null,
+            "source": "CPL website, TechCentral page (copied by Jungu, 2026-10-14)"
+          },
+          "phone": {
+            "label": "Public phone number",
+            "value": "(216) 623-2980",
+            "provenance": "harvested",
+            "last_verified": null,
+            "source": "CPL website, TechCentral page (copied by Jungu, 2026-10-14)"
+          },
+          "equipment_id_rule": {
+            "label": "ID needed for equipment",
+            "value": "Bring a physical photo ID for equipment access.",
+            "provenance": "harvested",
+            "last_verified": null,
+            "source": "CPL website, TechCentral page (copied by Jungu, 2026-10-14)"
+          },
+          "tech_help": {
+            "label": "One-on-one help",
+            "value": "Free one-on-one tech help, by appointment.",
+            "provenance": "harvested",
+            "last_verified": null,
+            "source": "CPL website, TechCentral page (copied by Jungu, 2026-10-14)"
+          },
+          "classes": {
+            "label": "Classes",
+            "value": "Free digital literacy classes.",
+            "provenance": "harvested",
+            "last_verified": null,
+            "source": "CPL website, TechCentral page (copied by Jungu, 2026-10-14)"
+          },
+          "audio": {
+            "label": "Audio and music",
+            "value": "Equipment and software for recording and digital media production.",
+            "provenance": "harvested",
+            "last_verified": null,
+            "source": "CPL website, TechCentral page (copied by Jungu, 2026-10-14)"
+          }
+        }
+      },
+      {
+        "file": "techcentral/policies/3d-printing-rules.md",
+        "id": "3d-printing-rules",
+        "type": "policy",
+        "title": "3D printing rules",
+        "owner": "[PLACEHOLDER: named TechCentral content owner]",
+        "review_every_days": 90,
+        "facts": {
+          "summary_prohibited": {
+            "label": "Plain-language summary of what can't be printed",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending: TechCentral written policy"
+          },
+          "official_text": {
+            "label": "Official policy text, verbatim",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending: does a written policy exist, and who owns it?"
+          },
+          "policy_url": {
+            "label": "Link to the official policy, if published",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending"
+          },
+          "safety_at_machine": {
+            "label": "Safety rules at the machine (hot nozzle, hot bed, unattended prints)",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending: TechCentral staff"
+          },
+          "unattended_rule": {
+            "label": "Can a patron leave a self-serve print running unattended?",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending"
+          },
+          "who_decides": {
+            "label": "Who decides whether a specific print is allowed",
+            "value": "[PLACEHOLDER: e.g. TechCentral staff at the desk]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending"
+          }
+        }
+      },
+      {
+        "file": "techcentral/services/3d-printing.md",
+        "id": "3d-printing",
+        "type": "service",
+        "title": "3D printing",
+        "owner": "[PLACEHOLDER: named TechCentral content owner]",
+        "review_every_days": 90,
+        "facts": {
+          "operating_model": {
+            "label": "Who runs the printers",
+            "value": "Staff run 3D prints by default. Patrons who are comfortable and competent can run prints themselves.",
+            "provenance": "harvested",
+            "last_verified": null,
+            "source": "Jungu (CPL IT), 2026-10-14. Not yet confirmed by the TechCentral content owner."
+          },
+          "self_serve_qualification": {
+            "label": "What makes a patron \"comfortable and competent\" for self-serve (sign-off / orientation / judgment call)",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending: if no formal rule exists, that is a finding for TechCentral, not a gap to design around"
+          },
+          "orientation": {
+            "label": "Is there an orientation? Format, length, how to sign up",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending: TechCentral lead interview"
+          },
+          "cost": {
+            "label": "What 3D printing costs patrons (free? per gram? per hour?)",
+            "value": "Free to use. Material fees apply.",
+            "provenance": "harvested",
+            "last_verified": null,
+            "source": "CPL website, TechCentral page (copied by Jungu, 2026-10-14). Applies to the makerspace generally; the 3D material fee amount is a separate fact."
+          },
+          "printer_models": {
+            "label": "Printer models in use",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending: TechCentral lead interview"
+          },
+          "accepted_file_types": {
+            "label": "File types accepted (e.g. STL, 3MF, OBJ)",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending: TechCentral lead interview"
+          },
+          "max_size": {
+            "label": "Maximum print size, plus a patron-friendly comparison ('about the size of a coffee mug')",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending: TechCentral lead interview"
+          },
+          "max_print_time": {
+            "label": "Maximum print time",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending: TechCentral lead interview"
+          },
+          "materials": {
+            "label": "Materials and colors available; can patrons bring their own?",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending: TechCentral lead interview"
+          },
+          "model_sources": {
+            "label": "Trusted places to find models (2–3 staff-recommended sites)",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending: TechCentral lead interview"
+          },
+          "slicer": {
+            "label": "Slicing software used, for self-serve patrons",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending: TechCentral lead interview"
+          },
+          "submit_how": {
+            "label": "Staff-run path: how patrons submit a file (form / email / USB at the desk / other)",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending: TechCentral lead interview"
+          },
+          "turnaround": {
+            "label": "Staff-run path: typical time until a print is ready",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending: TechCentral lead interview"
+          },
+          "notify_how": {
+            "label": "How patrons are told a print is ready, including an option that needs no phone",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending: TechCentral lead interview"
+          },
+          "booking_how": {
+            "label": "Self-serve path: how to book a printer (system / walk-up / sign-up sheet)",
+            "value": "Reservations are encouraged. Reserve at cpl.libcal.com/reserve/MakerSpace.",
+            "provenance": "harvested",
+            "last_verified": null,
+            "source": "CPL website, TechCentral page (copied by Jungu, 2026-10-14). This is the general MakerSpace reservation. Confirm whether 3D printers are booked individually, and whether staff-run prints need a booking at all."
+          },
+          "pickup_window": {
+            "label": "How long a finished print is held",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending: TechCentral lead interview"
+          },
+          "unclaimed": {
+            "label": "What happens to prints that aren't picked up",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending: TechCentral lead interview"
+          },
+          "material_fee": {
+            "label": "3D printing material fee amount",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending: TechCentral lead interview. The website says only 'material fees apply.'"
+          },
+          "printer_count": {
+            "label": "How many 3D printers",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending. The website lists '3D Printer' (singular). Confirm the count, since it affects turnaround and booking."
+          }
+        }
+      },
+      {
+        "file": "techcentral/services/printing.md",
+        "id": "printing",
+        "type": "service",
+        "title": "Printing",
+        "owner": "[PLACEHOLDER: named TechCentral content owner]",
+        "review_every_days": 90,
+        "facts": {
+          "printer_name": {
+            "label": "Name of the printer or queue to choose in the print dialog",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending: TechCentral lead interview"
+          },
+          "color_available": {
+            "label": "Is color printing available?",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending: TechCentral lead interview"
+          },
+          "price_bw": {
+            "label": "Black-and-white price per page",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending: TechCentral lead interview. (The reentry journey spec says $0.15/page: unverified, do not use.)"
+          },
+          "price_color": {
+            "label": "Color price per page",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending: TechCentral lead interview"
+          },
+          "payment_methods": {
+            "label": "How patrons pay at release (cash / card / balance on library card / other)",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending: TechCentral lead interview"
+          },
+          "add_money_how": {
+            "label": "How to add money if the balance is too low",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending: TechCentral lead interview"
+          },
+          "release_needs": {
+            "label": "What a patron needs to release a job (library card / guest pass / job name)",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending: TechCentral lead interview. The website requires a physical photo ID for 'equipment access': does that include printing?"
+          },
+          "hold_time": {
+            "label": "How long a sent job waits before it's deleted",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending: TechCentral lead interview"
+          },
+          "source_computer": {
+            "label": "Printing from a patron computer: supported? Any notes",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending: TechCentral lead interview"
+          },
+          "source_phone": {
+            "label": "Printing from a patron's phone: supported? How (app / web upload / email)?",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending: TechCentral lead interview"
+          },
+          "source_laptop": {
+            "label": "Printing from a patron's own laptop: supported? How?",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending: TechCentral lead interview"
+          },
+          "source_usb": {
+            "label": "Printing from a USB drive: supported? Which computers?",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending: TechCentral lead interview"
+          },
+          "source_email": {
+            "label": "Printing from email: supported? To what address?",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending: TechCentral lead interview"
+          },
+          "print_system": {
+            "label": "Name of the print management / release system",
+            "value": "[PLACEHOLDER]",
+            "provenance": "placeholder",
+            "last_verified": null,
+            "source": "Pending: Raghav or the TechCentral lead"
+          }
+        }
+      }
+    ]
+  }
+}
