@@ -71,7 +71,7 @@ HANDOFF.md, CLAUDE-CODE-PROMPT.md The original TechCentral handoff (historical)
 - **TechCentral doorway:** location and hours, plus buttons into the TechCentral prototype's print and 3D-print plans, with tags on. Start over there brings the kiosk back to the entrance.
 - **Ask panel** (mockup spec §5, Phase 1):
   - a full-height chat. Before the first message it's voice-first: a large record button ("Tap and ask out loud"), then suggested questions; after that, bubbles above a message field with a small mic and Send at the bottom, and the on-screen keyboard docked under it. There's no public-screen notice;
-  - **voice input:** tap the mic for a live dictation view (bars that follow your voice, words appearing as you speak); when you finish, the view shows what it heard with **Retry** or **Send it** (Send it sends the message and returns to the chat). It uses the browser's speech recognition; in Chrome that means Google's speech service hears the audio. `?voice=demo` plays a scripted dictation without a microphone, and `?voice=off` hides the mic;
+  - **voice input:** tap the mic for a live dictation view (bars that follow your voice, words appearing as you speak); when you finish, the view shows what it heard with **Retry** or **Send it** (Send it sends the message and returns to the chat). It uses the browser's speech recognition where that works (desktop Chrome sends the audio to Google's speech service). **On Android, or after the built-in recognizer fails once, it records the question and the relay transcribes it with OpenAI** (`gpt-4o-transcribe`, words streamed back), if `OPENAI_API_KEY` is set on the relay. `?stt=server|browser` forces a path; `?voicedebug=1` logs each step on screen; `/mictest` records and replays to check a kiosk's microphone. `?voice=demo` plays a scripted dictation without a microphone, and `?voice=off` hides the mic;
   - "The library assistant is looking into it" while waiting; if no reply comes, the panel says where staff are;
   - **Close ends the conversation:** with a conversation going, Close (or Back, Escape, the backdrop) asks "End this chat?" Ending it tells the relay (the console marks it ended; the log says "patron ended the chat") and erases it from the screen. "Based on: …" only steps out to a place and keeps the conversation;
   - each reply with "Based on: …", a source line, and Helpful / Not helpful;
@@ -85,7 +85,7 @@ HANDOFF.md, CLAUDE-CODE-PROMPT.md The original TechCentral handoff (historical)
 The relay (`app/server/index.ts`) passes questions from a kiosk session to the console and replies back, in real time.
 - **How it talks:** server-sent events out, plain POSTs in.
 - **Storage:** in memory only. A restart erases everything.
-- **When Ask shows on the kiosk:** only when the console switch is on, a console is connected, and it's inside the posted hours (none are set yet).
+- **When Ask shows on the kiosk:** only when the console switch is on (it starts on), a console is connected, and it's inside the posted hours (none are set yet).
 
 The console is one screen for one person:
 - a queue with wait timers and badges ("Emergency words", "Are you a bot?");
@@ -93,7 +93,7 @@ The console is one screen for one person:
 - saved answers (tap to use, then edit) and locked answers (one tap, can't be edited);
 - a **source tag** on every reply: catalog fact, named source, or none, which is logged as a candidate catalog entry;
 - "Send to the desk now", which marks a handoff;
-- **Settings** (patron-facing switches, live, reset on relay restart). First one: **Place cards start a chat**. When it's on and Ask is showing, tapping a place on Home opens the chat and sends that card's question as the patron's first message; when it's off, the card opens the place's info screen;
+- **Settings** (patron-facing switches, live, reset on relay restart). First one: **Place cards start a chat** (starts on). When it's on and Ask is showing, tapping a place on Home opens the chat and sends that card's question as the patron's first message; when it's off, the card opens the place's info screen;
 - **Delete conversation** for a finished one (confirm step), or **Clear ended conversations** for all of them. Open conversations can't be deleted. Deleted ones also leave the log export;
 - an optional chime for new questions;
 - **Export log (CSV)**, one row per exchange: time, kiosk, context, question, answer, source, response time, outcome, vote. It holds no patron identifiers.
@@ -131,6 +131,8 @@ The kiosks also carry two labelled departures, pending the design-system revisio
 **Relay environment variables:**
 - `STAFF_PASSCODE` (optional; unset means `/staff` is open with no sign-in)
 - `REPLY_TIMEOUT_S` (default 120)
+- `ASK_DEFAULT=off`, `CARDS_CHAT_DEFAULT=off` (start those console switches off; both start on)
+- `OPENAI_API_KEY` (turns on server transcription, the voice fallback), `OPENAI_TRANSCRIBE_MODEL` (default `gpt-4o-transcribe`), `TRANSCRIBE_FAKE=1` (canned transcript, for testing without a key)
 - `RELAY_PORT` or `PORT`
 
 **Entrance flags:**
@@ -161,6 +163,15 @@ The kiosks also carry two labelled departures, pending the design-system revisio
 - **Redeploy from your machine:** `cd app && railway up --service relay`. Or connect the GitHub repo to the service in Railway's dashboard (root directory `app`) for automatic deploys.
 
 **Vercel** serves `app/dist` with `app/vercel.json`, which sends every page path to `index.html`. For live answering on the Vercel URL, set the environment variable `VITE_API_BASE=https://relay-production-1068.up.railway.app` in the Vercel project and redeploy. Without it, the Vercel pages can't reach a relay, so Ask stays hidden.
+
+### Running it as a kiosk on an Android screen
+
+The site is installable as a full-screen app: `app/public/manifest.webmanifest` (full screen, portrait, starts at `/libraryentrance`), CPL-mark icons (regenerate with `node app/scripts/make-icons.mjs`), and a pass-through service worker (`app/public/sw.js`) that caches nothing and never touches `/api`.
+
+1. In Chrome on the device, open the Railway URL → ⋮ → **Install app** (or **Add to Home screen**).
+2. Open it from the home screen: no address bar, no status bar.
+3. Lock it in with Android **App pinning** (Settings → Security → App pinning), or use a kiosk browser such as Fully Kiosk Browser for auto-start, screen schedules, and a locked-down device.
+4. Tap the mic once and **Allow** the microphone, so voice input works for patrons.
 
 ## Known gaps
 
