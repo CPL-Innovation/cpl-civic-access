@@ -1,0 +1,6 @@
+{
+  "_readme": "Posted hours for the human-answered assistant (BUILD-entrance-kiosk §6, decision 3: still open). Ask shows on the kiosk only when the console switch is on, a console is connected, and the time is inside one of these windows. Empty list = no posted hours set yet: Ask follows the switch alone, and the console says so. Days: 0 = Sunday … 6 = Saturday.",
+  "timezone": "America/New_York",
+  "windows": [],
+  "endDate": null
+}

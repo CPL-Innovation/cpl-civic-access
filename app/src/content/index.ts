@@ -46,12 +46,16 @@ export function checkedFor(planOrScreen: string): string {
   return printing.checkedDate;
 }
 
-/** cpl.org/tc/usb → /tc/usb (the path this build serves the phone page at). */
-export const pathOf = (url: string) => url.replace(/^[^/]+/, '');
+/** The TechCentral prototype is served under this prefix (the entrance kiosk owns the root). */
+export const TC_BASE = '/techcentral';
+/** cpl.org/tc/usb → /tc/usb */
+export const rawPath = (url: string) => url.replace(/^[^/]+/, '');
+/** cpl.org/tc/usb → /techcentral/tc/usb (the path this build serves the phone page at). */
+export const pathOf = (url: string) => TC_BASE + rawPath(url);
 
 export function planBySlug(slug: string): PlanId | undefined {
-  return (Object.keys(PLANS) as PlanId[]).find((k) => pathOf(PLANS[k].url) === '/tc/' + slug);
+  return (Object.keys(PLANS) as PlanId[]).find((k) => rawPath(PLANS[k].url) === '/tc/' + slug);
 }
 export function fixBySlug(slug: string): FixId | undefined {
-  return (Object.keys(FIX) as FixId[]).find((k) => pathOf(FIX[k].url) === '/tc/' + slug);
+  return (Object.keys(FIX) as FixId[]).find((k) => rawPath(FIX[k].url) === '/tc/' + slug);
 }

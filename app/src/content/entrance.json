@@ -1,0 +1,200 @@
+{
+  "_readme": "Main Library entrance kiosk, Cut 1 (Walkable). Every fact is a bare [[label]] placeholder, so it can only render as a visible [PLACEHOLDER: …] tag. No sample values in this cut, not even behind a demo flag (entrance-kiosk/BUILD-entrance-kiosk.md). The directory names are a draft starting list for desk staff to correct. In Cut 2 this file is replaced by a generated sync from the vault's catalog/main-library/.",
+  "checkedDate": "[[date checked]]",
+  "place": "Main Library",
+  "attract": {
+    "eyebrow": "Cleveland Public Library",
+    "title": "New here? Find your way around the",
+    "titleAccent": "Main Library",
+    "lead": "Tell us where you’re headed, and we’ll point the way.",
+    "catalog": "Looking for a book? Use the catalog computer right next to this screen.",
+    "cta": "Tap anywhere to start",
+    "foot": "This screen is public. Nothing you choose is saved."
+  },
+  "staff": "Staff are at [[nearest staffed desk, from this kiosk]].",
+  "staffShort": "[[nearest desk]]",
+  "hours": "Open today [[today’s hours]].",
+  "directory": [
+    {
+      "id": "restrooms",
+      "name": "Restrooms",
+      "floor": "[[restrooms: floor]]",
+      "desk": "[[restrooms: nearest desk]]",
+      "hours": "[[restrooms: hours]]",
+      "alt": "Photo of the way to the nearest restrooms from the entrance.",
+      "ask": "Where are the restrooms?"
+    },
+    {
+      "id": "library-card",
+      "name": "Get a library card",
+      "floor": "[[library cards: floor]]",
+      "desk": "[[library cards: which desk]]",
+      "hours": "[[library cards: hours]]",
+      "alt": "Photo of the desk where people get a library card.",
+      "ask": "How do I get a library card?"
+    },
+    {
+      "id": "holds",
+      "name": "Pick up a hold",
+      "floor": "[[holds: floor]]",
+      "desk": "[[holds: pickup shelf or desk]]",
+      "hours": "[[holds: hours]]",
+      "alt": "Photo of the holds pickup shelf.",
+      "ask": "Where do I pick up a hold?"
+    },
+    {
+      "id": "returns",
+      "name": "Return books",
+      "floor": "[[returns: floor]]",
+      "desk": "[[returns: where the drop is]]",
+      "hours": "[[returns: hours]]",
+      "alt": "Photo of the book return.",
+      "ask": "Where do I return books?"
+    },
+    {
+      "id": "kids-teens",
+      "name": "Kids’ and teen spaces",
+      "floor": "[[kids and teens: floor]]",
+      "desk": "[[kids and teens: nearest desk]]",
+      "hours": "[[kids and teens: hours]]",
+      "alt": "Photo of the entrance to the kids’ and teen spaces.",
+      "ask": "Where are the kids’ and teen spaces?"
+    },
+    {
+      "id": "rooms",
+      "name": "Study and meeting rooms",
+      "floor": "[[rooms: floor]]",
+      "desk": "[[rooms: where to book]]",
+      "hours": "[[rooms: hours]]",
+      "alt": "Photo of the study and meeting rooms.",
+      "ask": "How do I book a study or meeting room?"
+    }
+  ],
+  "techcentral": {
+    "lead": "Printing and 3D printing, with staff who can show you how.",
+    "where": "[[TechCentral: location from the entrance]]",
+    "hours": "[[TechCentral: hours]]",
+    "alt": "Photo of the TechCentral entrance.",
+    "ask": "Where is TechCentral, and what can I do there?"
+  },
+  "ask": {
+    "label": "Ask a library assistant",
+    "homeSub": "Type or tap a question. We’ll point you the right way.",
+    "notice": "This screen is public. Don’t type personal information. Everything is erased when you finish.",
+    "waiting": "The library assistant is looking into it.",
+    "timeout": "The library assistant hasn’t been able to answer yet. Staff at [[nearest staffed desk, from this kiosk]] can help you right now.",
+    "unavailable": "The library assistant isn’t available right now. Staff at [[nearest staffed desk, from this kiosk]] can help.",
+    "sourceGuide": "From the Main Library guide · checked [[date checked]]",
+    "sourceNone": "This isn’t in the guide yet. Staff can confirm.",
+    "sourceNamed": "From",
+    "chips": [
+      {
+        "id": "c-restrooms",
+        "q": "Where are the restrooms?",
+        "script": {
+          "text": "The restrooms are on [[restrooms: floor]], near [[restrooms: nearest desk]].",
+          "source": "catalog",
+          "based": "restrooms"
+        }
+      },
+      {
+        "id": "c-card",
+        "q": "How do I get a library card?",
+        "script": {
+          "text": "You can get one at [[library cards: which desk]] on [[library cards: floor]]. Bring [[what to bring for a library card]].",
+          "source": "catalog",
+          "based": "library-card"
+        }
+      },
+      {
+        "id": "c-print",
+        "q": "Where can I print something?",
+        "script": {
+          "text": "Printing is at TechCentral, [[TechCentral: location from the entrance]]. The TechCentral guide on this screen can make you a plan.",
+          "source": "catalog",
+          "based": "techcentral"
+        }
+      },
+      {
+        "id": "c-holds",
+        "q": "Where do I pick up a hold?",
+        "script": {
+          "text": "Holds are at [[holds: pickup shelf or desk]] on [[holds: floor]].",
+          "source": "catalog",
+          "based": "holds"
+        }
+      }
+    ]
+  },
+  "locked": {
+    "bot": {
+      "id": "bot",
+      "label": "No, I’m a person",
+      "text": "No, I’m a person here at the library."
+    },
+    "emergency": {
+      "id": "emergency",
+      "label": "Emergency message",
+      "text": "[[entrance emergency message, wording from CPL security]]"
+    }
+  },
+  "saved": [
+    {
+      "id": "desk",
+      "label": "Go to the desk",
+      "text": "Staff at [[nearest staffed desk, from this kiosk]] can help with that right away."
+    },
+    {
+      "id": "off-topic",
+      "label": "Off-topic",
+      "text": "I can help you find your way around the Main Library. For anything else, staff at [[nearest staffed desk, from this kiosk]] can help."
+    },
+    {
+      "id": "not-in-guide",
+      "label": "Not in the guide",
+      "text": "I don’t have that in the Main Library guide, so I don’t want to guess. Staff at [[nearest staffed desk, from this kiosk]] can help."
+    },
+    {
+      "id": "catalog",
+      "label": "Use the catalog",
+      "text": "For books and other items, the catalog computer right next to this screen can find them and tell you where they are."
+    }
+  ],
+  "botWords": [
+    "are you a bot",
+    "are you a robot",
+    "are you real",
+    "are you ai",
+    "is this ai",
+    "are you a person",
+    "am i talking to a",
+    "is this a bot",
+    "are you human"
+  ],
+  "emergencyWords": [
+    "fire",
+    "smoke",
+    "emergency",
+    "hurt",
+    "injured",
+    "bleeding",
+    "ambulance",
+    "police",
+    "911",
+    "unsafe",
+    "danger",
+    "attack",
+    "can't breathe",
+    "cant breathe",
+    "overdose"
+  ],
+  "offTopicWords": [
+    "weather",
+    "stock",
+    "joke",
+    "bus schedule",
+    "recipe",
+    "sports",
+    "movie"
+  ]
+}

@@ -1,0 +1,173 @@
+/* Main Library entrance kiosk — additions on top of kiosk.css (same tokens, components, motion). */
+
+/* Attract: the catalog redirect heads off "is this catalog search?" */
+.att-catalog{display:flex;align-items:center;gap:var(--sp-3);padding:var(--sp-3) var(--sp-4);border:2px solid rgba(255,255,255,.55);border-radius:var(--radius-md);font-size:var(--fs-base);line-height:1.35;color:var(--cpl-white)}
+.att-catalog svg{flex:none;width:1.4em;height:1.4em;color:var(--cpl-butter)}
+.hc .att-catalog{border-color:#FFFFFF}
+.hc .att-catalog svg{color:#FFF200}
+
+/* Home: the assistant is prominent here; the directory is compact */
+.ask-tile .choice{border-color:var(--cpl-navy);box-shadow:inset 0 0 0 1px var(--cpl-navy),var(--shadow-1)}
+.ask-tile .cic{background:var(--cpl-butter);color:var(--cpl-navy-ink)}
+.hc .ask-tile .cic{background:#FFF200;color:#000}
+.dir-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.dir-grid .choice{padding:var(--sp-3) var(--sp-4);min-height:2.8em}
+.dir-grid .cic{width:1.9em;height:1.9em}
+.dir-grid .cic svg{width:1.1em;height:1.1em}
+.facts.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.landscape .facts.two{grid-template-columns:minmax(0,1fr)}
+
+/* Bottom bar: the staff label carries a placeholder tag in Cut 1, so let it wrap instead of pushing Start over off-screen. */
+.entrance .bar{grid-template-columns:1fr 1.3fr 1.1fr}
+.landscape.entrance .bar{grid-template-columns:1fr 1.3fr 1.1fr}
+.entrance .bbtn{white-space:normal;min-width:0}
+.entrance .bbtn small .ph{font-size:.82em}
+
+/* =====================================================================
+   Ask a library assistant — a full-height chat panel.
+   Covers the screen above the bottom bar (which stays: Staff help is
+   always one tap away). Conversation in the middle, input at the bottom.
+   ===================================================================== */
+.sheet.ask-sheet,.landscape .sheet.ask-sheet{top:0;left:0;right:0;bottom:0;width:auto;height:auto;max-height:none;display:flex;flex-direction:column}
+.chat-h{gap:var(--sp-3)}
+.chat-h-text{flex:1;display:flex;flex-direction:column;min-width:0}
+.chat-h .sh-t{line-height:1.15}
+.chat-ctx{font-size:var(--fs-xs);color:var(--fg-2)}
+.chat-avatar{flex:none;width:1.9em;height:1.9em;border-radius:50%;background:var(--cpl-navy);color:var(--cpl-white);display:flex;align-items:center;justify-content:center}
+.chat-avatar svg{width:1.05em;height:1.05em}
+.chat-avatar.big{width:3em;height:3em}
+.chat-avatar.big svg{width:1.5em;height:1.5em}
+.chat-avatar.urgent{background:var(--danger-bg);color:var(--danger-fg)}
+.hc .chat-avatar{background:#FFF200;color:#000}
+
+/* the conversation */
+.chat-log{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:var(--sp-4);padding:var(--sp-5) var(--sp-6)}
+.chat-empty{margin:auto 0;display:flex;flex-direction:column;align-items:center;gap:var(--sp-3);text-align:center;padding:var(--sp-6) 0}
+.chat-empty .th{font-size:var(--fs-lg);line-height:1.25;max-width:16em}
+.msg{display:flex;align-items:flex-end;gap:var(--sp-3)}
+.msg.me{justify-content:flex-end}
+.msg.them{justify-content:flex-start}
+.bubble{max-width:82%;display:flex;flex-direction:column;gap:var(--sp-2);padding:var(--sp-3) var(--sp-4);font-size:var(--fs-base);line-height:1.45;
+  border-radius:var(--radius-md);background:var(--bg-surface);border:2px solid var(--border-1);color:var(--fg-1)}
+.bubble p{margin:0}
+.msg.them .bubble{border-bottom-left-radius:var(--radius-xs)}
+.msg.me .bubble{background:var(--primary);border-color:var(--primary);color:var(--on-primary);border-bottom-right-radius:var(--radius-xs)}
+.bubble .who{font-size:var(--fs-xs);font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-2)}
+.bubble .meta{font-size:var(--fs-xs);color:var(--fg-2)}
+.bubble .based{margin-top:var(--sp-1)}
+.bubble.urgent{background:var(--danger-bg);border-color:var(--danger-bg);color:var(--danger-fg)}
+.bubble.urgent :is(.who,.meta){color:inherit}
+.bubble.urgent p:first-of-type{font-weight:600}
+.hc .bubble.urgent{border-color:#FFF200}
+.bubble.note{background:var(--bg-parchment)}
+.bubble.typing{flex-direction:row;align-items:center;gap:var(--sp-3);color:var(--fg-2)}
+.chat-log .notice{flex:none}
+
+/* the input, docked at the bottom */
+.chat-foot{flex:none;display:flex;flex-direction:column;gap:var(--sp-3);padding:var(--sp-4) var(--sp-6) var(--sp-5);background:var(--bg-surface);border-top:2px solid var(--border-1)}
+.chat-chips{display:flex;flex-wrap:wrap;gap:var(--sp-2)}
+.chip{min-height:max(2em,var(--tap-min));padding:0 var(--sp-4);border:2px solid var(--cpl-navy);border-radius:var(--radius-md);background:var(--bg-surface);color:var(--fg-link);font-weight:600;font-size:var(--fs-base);text-align:left}
+.chip:is(:hover,:active){border-color:var(--cpl-navy-ink);color:var(--cpl-navy-ink);background:var(--bg-sunken)}
+.hc .chip{border-color:#FFF200;color:#FFF200}
+.chat-input{display:flex;gap:var(--sp-2);align-items:stretch}
+.chat-field{flex:1;min-width:0;min-height:max(2.4em,var(--tap-min));display:flex;align-items:center;gap:2px;padding:0 var(--sp-4);text-align:left;
+  background:var(--bg-surface);border:2px solid var(--border-strong);border-radius:var(--radius-sm);font-size:var(--fs-base);color:var(--fg-1);overflow:hidden;white-space:nowrap}
+.chat-field.on{border-color:var(--cpl-navy-ink);box-shadow:0 0 0 1px var(--cpl-navy-ink)}
+.chat-field>span:first-child{overflow:hidden;text-overflow:ellipsis}
+.chat-send{flex:none;display:flex;align-items:center;gap:var(--sp-2);padding:0 var(--sp-5);min-height:max(2.4em,var(--tap-min));border-radius:var(--radius-xs);
+  border:2px solid var(--primary);background:var(--primary);color:var(--on-primary);font-weight:600;font-size:var(--fs-base)}
+.chat-send svg{width:1.1em;height:1.1em}
+.chat-send:disabled{background:var(--cpl-warm-gray);border-color:var(--cpl-warm-gray);color:#FFFFFF;cursor:default}
+.hc .chat-send:disabled{background:#333;border-color:#333}
+.key.hide{flex:2}
+.chat-off{font-size:var(--fs-base);color:var(--fg-2)}
+
+/* ---------- Voice input: live dictation view ---------- */
+.chat-mic{flex:none;display:flex;align-items:center;justify-content:center;width:max(2.4em,var(--tap-min));min-height:max(2.4em,var(--tap-min));border-radius:50%;
+  border:2px solid var(--cpl-navy);background:var(--bg-surface);color:var(--cpl-navy)}
+.chat-mic svg{width:1.15em;height:1.15em}
+.chat-mic:is(:hover,:active){background:var(--cpl-navy);color:var(--cpl-white)}
+.hc .chat-mic{border-color:#FFF200;color:#FFF200}
+
+.voice{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;gap:var(--sp-5);padding:var(--sp-8) var(--sp-6) var(--sp-5);text-align:center;background:var(--bg-page)}
+/* Four bars in CPL colors; height follows the mic level (--lvl, 0–1) set from JS. */
+.voice-bars{--lvl:0;display:flex;align-items:center;justify-content:center;gap:.32em;height:3.2em}
+.voice-bars i{display:block;width:.42em;border-radius:999px;height:calc(0.9em + var(--lvl) * var(--k) * 2.3em);transition:height 90ms linear}
+.voice-bars i:nth-child(1){background:var(--cpl-navy);--k:.8}
+.voice-bars i:nth-child(2){background:#4298B5;--k:1.15}
+.voice-bars i:nth-child(3){background:var(--cpl-marigold);--k:1}
+.voice-bars i:nth-child(4){background:var(--cpl-ivy);--k:.7}
+.hc .voice-bars i{background:#FFF200}
+.voice-text{flex:1;min-height:0;overflow:auto;max-width:18em;font-size:var(--fs-lg);line-height:1.35;font-weight:500;color:var(--fg-1);display:flex;align-items:center;justify-content:center}
+.voice-text .interim{color:var(--fg-2)}
+.voice-wait{color:var(--fg-2)}
+.voice-err{font-size:var(--fs-base);color:var(--fg-1);font-weight:500}
+.voice-hint{font-size:var(--fs-xs);color:var(--fg-2);max-width:26em}
+.voice-cta{width:100%;max-width:22em}
+@media (prefers-reduced-motion: no-preference){
+  /* While waiting for speech, the bars breathe so it's clear the mic is on. */
+  .voice-bars.on:not(.heard) i{animation:vb-idle 1.4s ease-in-out infinite}
+  .voice-bars.on:not(.heard) i:nth-child(2){animation-delay:.15s}
+  .voice-bars.on:not(.heard) i:nth-child(3){animation-delay:.3s}
+  .voice-bars.on:not(.heard) i:nth-child(4){animation-delay:.45s}
+  @keyframes vb-idle{50%{transform:scaleY(1.6)}}
+  .voice{animation:cpl-step-in var(--dur-slow) var(--ease-standard) backwards}
+}
+@media (prefers-reduced-motion: reduce){.voice-bars i{transition:none;height:1.2em}}
+@media (prefers-reduced-motion: no-preference){
+  /* No mic level available (demo, or the meter was refused): the bars move while speech is coming in. */
+  .voice-bars.on.heard:not(.live) i{animation:vb-talk .9s ease-in-out infinite}
+  .voice-bars.on.heard:not(.live) i:nth-child(2){animation-delay:.12s;animation-duration:.7s}
+  .voice-bars.on.heard:not(.live) i:nth-child(3){animation-delay:.24s;animation-duration:1s}
+  .voice-bars.on.heard:not(.live) i:nth-child(4){animation-delay:.36s;animation-duration:.8s}
+  @keyframes vb-talk{0%,100%{transform:scaleY(1)}50%{transform:scaleY(2.4)}}
+}
+/* The field wraps so a dictated question can be read in full before sending. */
+.chat-field{white-space:normal;overflow-wrap:anywhere;align-items:center;padding-top:var(--sp-2);padding-bottom:var(--sp-2);line-height:1.35;max-height:5.5em;overflow:auto}
+.chat-field>span:first-child{overflow:visible;text-overflow:clip}
+
+/* ---------- Message field: a real-feeling input ---------- */
+.chat-field{gap:0;justify-content:flex-start;cursor:text;transition:border-color var(--dur-fast) var(--ease-standard),box-shadow var(--dur-fast) var(--ease-standard)}
+.chat-field .ph-hint{color:var(--fg-2);font-weight:400}
+.chat-field.on{border-color:var(--cpl-navy-ink);box-shadow:0 0 0 4px rgba(0,87,183,.16)}
+.hc .chat-field.on{border-color:#FFF200;box-shadow:0 0 0 3px #FFF200}
+.chat-field .chat-text{white-space:pre-wrap}
+.chat-field .caret{display:inline-block;width:2px;height:1.15em;margin:0 1px;vertical-align:text-bottom;background:var(--cpl-navy-ink);border-radius:1px;flex:none}
+.hc .chat-field .caret{background:#FFF200}
+@media (prefers-reduced-motion: no-preference){
+  /* Solid for a beat after each key, then the usual ~1 s blink. */
+  .chat-field .caret{animation:field-caret 1.06s steps(1,end) .5s infinite}
+  @keyframes field-caret{0%{opacity:1}50%{opacity:0}}
+}
+
+/* “End this conversation?” — over the chat, under the header */
+.end-confirm{position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;padding:var(--sp-6);background:rgba(0,42,92,.45)}
+.end-card{width:100%;max-width:22em;background:var(--bg-page);border-radius:var(--radius-md);box-shadow:var(--shadow-3);padding:var(--sp-6);display:flex;flex-direction:column;gap:var(--sp-3)}
+.hc .end-card{border:2px solid #FFFFFF}
+.end-card .cta{margin-top:var(--sp-3)}
+@media (prefers-reduced-motion: no-preference){
+  .end-confirm{animation:cpl-fade-in var(--dur-base) var(--ease-standard) backwards}
+  .end-card{animation:xp-idle-in .36s var(--ease-spring) backwards}
+}
+.end-card .btn{white-space:nowrap}
+
+/* ---------- Empty chat: voice first, then suggested questions ---------- */
+.chat-empty{width:100%;gap:var(--sp-4);padding:var(--sp-5) 0}
+.chat-empty .tb{max-width:24em}
+.mic-hero{display:flex;flex-direction:column;align-items:center;gap:var(--sp-3);padding:var(--sp-3);border:0;background:none;color:var(--fg-1);border-radius:var(--radius-md)}
+.mic-hero-btn{position:relative;width:4.6em;height:4.6em;border-radius:50%;background:var(--cpl-navy);color:var(--cpl-white);display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 .5em rgba(0,87,183,.14),var(--shadow-2)}
+.mic-hero-btn svg{width:2em;height:2em}
+.mic-hero:is(:hover,:active) .mic-hero-btn{background:var(--cpl-navy-ink)}
+.mic-hero-label{font-size:var(--fs-base);font-weight:600}
+.hc .mic-hero-btn{background:#FFF200;color:#000;box-shadow:none}
+.empty-qs{width:100%;display:flex;flex-direction:column;gap:var(--sp-2);margin-top:var(--sp-3);text-align:left}
+.empty-qs .hint{text-align:center}
+@media (prefers-reduced-motion: no-preference){
+  /* A slow ring drifts out from the record button: an invitation, not an alarm. */
+  .mic-hero-btn::after{content:"";position:absolute;inset:0;border-radius:50%;border:3px solid var(--cpl-navy);animation:mic-ring 2.4s ease-out infinite}
+  @keyframes mic-ring{0%{transform:scale(1);opacity:.5}100%{transform:scale(1.55);opacity:0}}
+  .kiosk .mic-hero:active .mic-hero-btn{transform:scale(.95)}
+  .mic-hero-btn{transition:transform .14s var(--ease-out),background-color var(--dur-fast) var(--ease-standard)}
+}
+/* Review: what was heard, settled and dark, ready to send */
+.voice-text.review{color:var(--fg-1);font-weight:600}

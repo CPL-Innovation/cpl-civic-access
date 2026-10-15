@@ -1,11 +1,16 @@
-# TechCentral concierge kiosk — clickable prototype
+# App details
 
-Static Vite + React + TypeScript app. No backend, nothing stored. See the [repo README](../README.md) for what this is, how it relates to the vault specs, the design system, and known gaps.
+The app serves three surfaces: the Main Library entrance kiosk (`/libraryentrance`, also `/`), the library assistant console (`/staff`), and the TechCentral prototype (`/techcentral`). This file covers the TechCentral prototype; the [repo README](../README.md) covers the entrance kiosk, the relay, and the console.
+
+## TechCentral concierge kiosk — clickable prototype
+
+The TechCentral prototype itself uses no backend and stores nothing (its assistant is a stub). See the [repo README](../README.md) for how it relates to the vault specs, the design system, and known gaps.
 
 ```
 npm install
-npm run dev        # http://localhost:5180  (prototype index at /links)
-npm run build      # static build in dist/ — host with an SPA fallback to index.html
+npm run dev        # relay + Vite; http://localhost:5180  (index of everything at /links)
+npm run build      # static build in dist/
+npm start          # the relay serves dist/ (with SPA fallback) and /api
 npm run placeholders   # list every unverified [[...]] fact still in the content
 ```
 
@@ -13,13 +18,17 @@ npm run placeholders   # list every unverified [[...]] fact still in the content
 
 | Path | What |
 |---|---|
-| `/` | The kiosk. Portrait by default, scaled and centered in any window. |
-| `/tc/usb`, `/tc/phone`, `/tc/email`, `/tc/make`, `/tc/3d`, `/tc/3d-self` | Phone plan pages (the QR codes) |
-| `/tc/lost`, `/tc/pay`, `/tc/wrong`, `/tc/card`, `/tc/phone-help`, `/tc/fix` | Phone fix pages and the all-fixes page |
-| `/tc/ref` | Plan B reference mode at the printer |
-| `/print/slip?plan=usb` · `?fix=lost` | Printed plan slip (Letter) |
-| `/print/card` | Release-station card (5.5 × 8.5 in) |
-| `/links` | Prototype index |
+All TechCentral paths sit under `/techcentral` (old `/tc/*` and `/print/*` links redirect).
+
+| Path | What |
+|---|---|
+| `/techcentral` | The kiosk. Portrait by default, scaled and centered in any window. `?start=p0\|m0` opens on a screen; `?return=/libraryentrance` hands back on reset (used by the entrance doorway). |
+| `/techcentral/tc/usb`, `…/tc/phone`, `…/tc/email`, `…/tc/make`, `…/tc/3d`, `…/tc/3d-self` | Phone plan pages (the QR codes) |
+| `/techcentral/tc/lost`, `…/pay`, `…/wrong`, `…/card`, `…/phone-help`, `…/fix` | Phone fix pages and the all-fixes page |
+| `/techcentral/tc/ref` | Plan B reference mode at the printer |
+| `/techcentral/print/slip?plan=usb` · `?fix=lost` | Printed plan slip (Letter) |
+| `/techcentral/print/card` | Release-station card (5.5 × 8.5 in) |
+| `/techcentral/links` | TechCentral index |
 
 ## Flags
 

@@ -1,19 +1,28 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { fixBySlug, planBySlug } from './content';
+import { config } from './config';
+import { TC_BASE, fixBySlug, planBySlug } from './content';
+import Entrance from './entrance/Entrance';
+import Index from './Index';
 import Kiosk from './kiosk/Kiosk';
 import Links from './Links';
 import { PhoneFix, PhoneFixes, PhonePlan, PhoneRef } from './phone/Phone';
 import { Card, Slip } from './print/Print';
+import Staff from './staff/Staff';
 
-/** One static build: the kiosk at /, phone pages at /tc/*, printables at /print/*. */
-function route() {
-  const path = window.location.pathname.replace(/\/+$/, '') || '/';
-  if (path === '/') return <Kiosk />;
-  if (path === '/links') return <Links />;
-  if (path === '/print/slip') return <Slip />;
-  if (path === '/print/card') return <Card />;
-  const m = path.match(/^\/tc\/([\w-]+)$/);
+/**
+ * One static build, one relay:
+ *   /, /libraryentrance   Main Library entrance kiosk (the default home)
+ *   /staff                Library assistant console (the human answering "Ask")
+ *   /techcentral/…        The TechCentral prototype, as it was (kiosk, /tc/* phone pages, /print/*, /links)
+ *   /links                Index of everything
+ */
+function techcentral(sub: string) {
+  if (sub === '/') return <Kiosk />;
+  if (sub === '/links') return <Links />;
+  if (sub === '/print/slip') return <Slip />;
+  if (sub === '/print/card') return <Card />;
+  const m = sub.match(/^\/tc\/([\w-]+)$/);
   if (m) {
     if (m[1] === 'ref') return <PhoneRef />;
     if (m[1] === 'fix') return <PhoneFixes />;
@@ -23,6 +32,25 @@ function route() {
     if (fix) return <PhoneFix id={fix} />;
   }
   return <Links />;
+}
+
+function route() {
+  const path = window.location.pathname.replace(/\/+$/, '') || '/';
+  if (path === '/' || path === '/libraryentrance') {
+    if (path === '/') window.history.replaceState(null, '', '/libraryentrance' + window.location.search);
+    // Cut 1 rule: every fact shows as a visible placeholder tag. No sample values, not even behind a flag.
+    config.placeholders = 'tags';
+    return <Entrance />;
+  }
+  if (path === '/staff') return <Staff />;
+  if (path === '/links') return <Index />;
+  if (path === TC_BASE || path.startsWith(TC_BASE + '/')) return techcentral(path.slice(TC_BASE.length) || '/');
+  // Old TechCentral paths (printed QR codes, bookmarks) moved under /techcentral.
+  if (path.startsWith('/tc/') || path.startsWith('/print/')) {
+    window.location.replace(TC_BASE + path + window.location.search);
+    return null;
+  }
+  return <Index />;
 }
 
 createRoot(document.getElementById('root')!).render(<StrictMode>{route()}</StrictMode>);
