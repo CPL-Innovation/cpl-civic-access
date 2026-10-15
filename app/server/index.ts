@@ -19,13 +19,15 @@
  *      VOICE_ENGINE_DEFAULT=browser (start with built-in speech recognition instead of OpenAI),
  *      OPENAI_API_KEY (turns on server-side voice transcription, the fallback for devices whose speech service fails),
  *      OPENAI_TRANSCRIBE_MODEL (default gpt-4o-transcribe), TRANSCRIBE_FAKE=1 (canned transcript, for testing without a key),
- *      OPENAI_LIVE_MODEL (default gpt-live-transcribe), OPENAI_REALTIME_URL (default wss://api.openai.com/v1/realtime?intent=transcription)
+ *      OPENAI_LIVE_MODEL (default gpt-live-transcribe), OPENAI_REALTIME_URL (default wss://api.openai.com/v1/realtime?intent=transcription),
+ *      ANTHROPIC_API_KEY (turns on AI-drafted replies), DRAFT_MODEL_DEFAULT (default claude-sonnet-5-5), DRAFTS_DEFAULT=off
  */
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import { DEFAULT_MODEL, MODEL_CHOICES, draftsAvailable, makeDraft, type Draft } from './drafts.ts';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.RELAY_PORT || process.env.PORT || 5181);
@@ -67,6 +69,8 @@ interface Msg {
   locked?: string; chipId?: string;
   source?: { kind: SourceKind; detail?: string };
   vote?: 'up' | 'down' | null;
+  /** For staff replies: what happened to the AI draft (for the log). */
+  draft?: 'as-is' | 'edited' | 'not used';
 }
 type Status = 'waiting' | 'answered' | 'timedout' | 'handed' | 'closed';
 interface Thread {
@@ -75,6 +79,8 @@ interface Thread {
   status: Status; closedReason?: string; open: boolean;
   urgent: boolean; bot: boolean;
   messages: Msg[];
+  /** The AI draft for the latest patron message (console only; never sent to the kiosk). */
+  draft?: Draft;
 }
 
 /**
@@ -99,6 +105,8 @@ const state = {
     voiceEngine: (['live', 'server', 'browser'] as const).find((v) => v === process.env.VOICE_ENGINE_DEFAULT) ?? 'live',
   } as Features,
   askOn: process.env.ASK_DEFAULT !== 'off',
+  /** AI-drafted replies in the console (staff-only setting). */
+  drafts: { on: process.env.DRAFTS_DEFAULT !== 'off', model: DEFAULT_MODEL },
   ignoreHours: false,
   threads: new Map<string, Thread>(),
   bySession: new Map<string, string>(),
@@ -165,10 +173,36 @@ function settings() {
     transcribe: sttAvailable(),
     live: liveAvailable(),
     features: state.features,
+    drafts: { ...state.drafts, available: draftsAvailable(), models: MODEL_CHOICES },
     kiosksOnline: new Set([...clients.values()].filter((c) => c.kind === 'kiosk').map((c) => c.kiosk)).size,
     replyTimeoutS: REPLY_TIMEOUT_S,
     ...availability(),
   };
+}
+
+/* ---------------- AI drafts ---------------- */
+
+const drafting = new Map<string, AbortController>();
+/** Draft a reply to the thread's latest patron message. A newer message (or Redraft) replaces an older draft. */
+function requestDraft(t: Thread) {
+  if (!state.drafts.on || !draftsAvailable()) return;
+  const last = [...t.messages].reverse().find((m) => m.from === 'patron');
+  if (!last) return;
+  drafting.get(t.id)?.abort();
+  const ac = new AbortController();
+  drafting.set(t.id, ac);
+  const model = state.drafts.model;
+  t.draft = { status: 'drafting', forMessage: last.id, at: Date.now(), model };
+  touch(t);
+  const turns = t.messages.filter((m) => m.from !== 'system').map((m) => ({ from: m.from as 'patron' | 'staff', text: m.text }));
+  makeDraft(turns, t.context, model, ac.signal)
+    .then((d) => { if (t.draft?.forMessage === last.id && !ac.signal.aborted) { t.draft = { ...d, forMessage: last.id, at: Date.now() }; touch(t); } })
+    .catch((e) => {
+      if (ac.signal.aborted) return;
+      console.error('draft: failed', String(e));
+      if (t.draft?.forMessage === last.id) { t.draft = { status: 'error', forMessage: last.id, at: Date.now(), model, error: 'Couldn’t reach the drafting service' }; touch(t); }
+    })
+    .finally(() => { if (drafting.get(t.id) === ac) drafting.delete(t.id); });
 }
 
 /* ---------------- live transcription sessions ---------------- */
@@ -255,6 +289,7 @@ function logRows() {
         source: replied ? (reply!.source?.kind === 'named' ? 'named: ' + (reply!.source.detail || '') : reply!.source?.kind === 'catalog' ? 'catalog: ' + (reply!.source.detail || '') : reply!.locked ? 'locked: ' + reply!.locked : 'none (candidate catalog entry)') : '',
         response_s: replied ? Math.round((reply!.at - m.at) / 1000) : '',
         outcome, vote: replied ? reply!.vote || '' : '',
+        draft: replied ? reply!.draft || '' : '',
         urgent: t.urgent ? 'yes' : '',
       });
     });
@@ -262,7 +297,7 @@ function logRows() {
   return rows.sort((a, b) => String(a.time).localeCompare(String(b.time)));
 }
 function csv(rows: Record<string, string | number>[]) {
-  const cols = ['time', 'kiosk', 'context', 'question', 'answer', 'source', 'response_s', 'outcome', 'vote', 'urgent'];
+  const cols = ['time', 'kiosk', 'context', 'question', 'answer', 'source', 'response_s', 'outcome', 'draft', 'vote', 'urgent'];
   const esc = (v: unknown) => { const s = String(v ?? ''); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
   return [cols.join(','), ...rows.map((r) => cols.map((c) => esc(r[c])).join(','))].join('\n') + '\n';
 }
@@ -325,6 +360,7 @@ async function api(req: http.IncomingMessage, res: http.ServerResponse, url: URL
     if (hasAny(text, content.botWords)) t.bot = true;
     t.status = 'waiting';
     touch(t);
+    requestDraft(t);
     return json(res, 200, { ok: true, threadId: t.id, messageId: m.id });
   }
   if (p === '/api/kiosk/vote' && req.method === 'POST') {
@@ -498,14 +534,34 @@ async function api(req: http.IncomingMessage, res: http.ServerResponse, url: URL
     const src = (b.source || {}) as { kind?: string; detail?: unknown };
     const kind: SourceKind = src.kind === 'catalog' || src.kind === 'named' ? src.kind : 'none';
     const m: Msg = { id: id(), from: 'staff', text, at: Date.now(), locked: locked?.id, source: locked ? undefined : { kind, detail: str(src.detail, 120) || undefined }, vote: null };
+    const lastPatron = [...t.messages].reverse().find((x) => x.from === 'patron');
+    if (t.draft?.status === 'ready' && t.draft.kind !== 'no_fact' && t.draft.forMessage === lastPatron?.id) {
+      m.draft = text === t.draft.text ? 'as-is' : b.draftUsed === true ? 'edited' : 'not used';
+    }
     t.messages.push(m);
+    drafting.get(t.id)?.abort();
+    t.draft = undefined;
     t.status = str(b.handoff, 5) === 'yes' ? 'handed' : 'answered';
     toSession(t.session, 'reply', m);
     touch(t);
     return json(res, 200, { ok: true });
   }
+  if (p === '/api/staff/draft' && req.method === 'POST') {
+    const b = await body(req);
+    const t = state.threads.get(str(b.threadId, 20));
+    if (!t) return json(res, 404, { error: 'not found' });
+    if (!draftsAvailable()) return json(res, 503, { error: 'Drafts aren’t set up on this relay (no ANTHROPIC_API_KEY).' });
+    const was = state.drafts.on;
+    state.drafts.on = true; // an explicit request works even with automatic drafts off
+    requestDraft(t);
+    state.drafts.on = was;
+    return json(res, 200, { ok: true });
+  }
   if (p === '/api/staff/settings' && req.method === 'POST') {
     const b = await body(req);
+    const d = (b.drafts || {}) as Record<string, unknown>;
+    if (typeof d.on === 'boolean') state.drafts.on = d.on;
+    if (typeof d.model === 'string' && /^[a-z0-9][a-z0-9.\-]{2,63}$/i.test(d.model.trim())) state.drafts.model = d.model.trim();
     if (typeof b.askOn === 'boolean') state.askOn = b.askOn;
     if (typeof b.ignoreHours === 'boolean') state.ignoreHours = b.ignoreHours;
     const f = (b.features || {}) as Record<string, unknown>;
