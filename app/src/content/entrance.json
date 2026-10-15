@@ -78,8 +78,9 @@
     "ask": "Where is TechCentral, and what can I do there?"
   },
   "ask": {
-    "label": "Ask a library assistant",
-    "homeSub": "Type or tap a question. We’ll point you the right way.",
+    "label": "Chat with a live assistant",
+    "homeSub": "A real person is here to answer in real time. Talk or type your question.",
+    "live": "Live now",
     "notice": "This screen is public. Don’t type personal information. Everything is erased when you finish.",
     "waiting": "The library assistant is looking into it.",
     "timeout": "The library assistant hasn’t been able to answer yet. Staff at [[nearest staffed desk, from this kiosk]] can help you right now.",

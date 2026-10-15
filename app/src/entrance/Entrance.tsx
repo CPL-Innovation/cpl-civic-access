@@ -17,7 +17,7 @@ import { T, plain } from '../lib/ph';
 import { speech } from '../lib/speech';
 import { API } from '../lib/api';
 import { MicTest } from './MicTest';
-import { VOICE_DEBUG, useVoice } from './useVoice';
+import { VOICE_DEBUG, useVoice, type VoiceEngine } from './useVoice';
 import '../kiosk/kiosk.css';
 import './entrance.css';
 
@@ -96,6 +96,11 @@ export default function Entrance() {
   const [cardsChat, setCardsChat] = useState(ASK_MODE === 'scripted' && SCRIPT_CARDS_CHAT);
   /** The relay can transcribe recorded questions (OpenAI): the voice fallback for kiosks whose speech service fails. */
   const [serverStt, setServerStt] = useState(false);
+  const [voiceEngine, setVoiceEngine] = useState<VoiceEngine>('live');
+  /** The relay can stream words while the patron speaks (OpenAI Realtime). */
+  const [liveStt, setLiveStt] = useState(false);
+  /** The console's "Prototype index link" setting. */
+  const [showIndex, setShowIndex] = useState(ASK_MODE !== 'live'); // hidden by default on a relay-connected kiosk
   const last = useRef(Date.now());
   const waitingRef = useRef(false);
   const trigger = useRef<HTMLElement | null>(null);
@@ -133,7 +138,7 @@ export default function Entrance() {
   }, []);
 
   /* Voice input: the transcript lands in the message field, unsent. */
-  const voice = useVoice({ server: serverStt, session: s.session });
+  const voice = useVoice({ server: serverStt, live: liveStt, session: s.session, engine: voiceEngine });
   waitingRef.current = s.waiting || voice.state === 'listening' || voice.state === 'transcribing' || voice.state === 'review';
   voiceCancel.current = voice.cancel;
   useEffect(() => { if (s.ov !== 'ask') voice.cancel(); }, [s.ov, voice.cancel]);
@@ -171,16 +176,17 @@ export default function Entrance() {
     return () => clearInterval(t);
   }, []);
 
-  /* The live relay: one stream per kiosk session. */
+  /* The live relay: one stream per kiosk session, and a session-less one on the attract screen so console settings apply there too. */
   useEffect(() => {
-    if (ASK_MODE !== 'live' || !s.session) { if (ASK_MODE === 'live') setAvail(false); return; }
-    const es = new EventSource(API + `/api/kiosk/stream?kiosk=${encodeURIComponent(KIOSK_ID)}&session=${encodeURIComponent(s.session)}`);
+    if (ASK_MODE !== 'live') return;
+    const es = new EventSource(API + `/api/kiosk/stream?kiosk=${encodeURIComponent(KIOSK_ID)}&session=${encodeURIComponent(s.session || '')}`);
     es.addEventListener('status', (e) => {
       const d = JSON.parse((e as MessageEvent).data);
       setAvail(!!d.available);
       if (d.replyTimeoutS && !REPLY_TIMEOUT_OVERRIDE_S) setReplyTimeoutS(d.replyTimeoutS);
-      if (d.features) setCardsChat(!!d.features.cardsOpenChat);
+      if (d.features) { setCardsChat(!!d.features.cardsOpenChat); setShowIndex(!!d.features.showIndex); if (d.features.voiceEngine) setVoiceEngine(d.features.voiceEngine); }
       setServerStt(!!d.transcribe);
+      setLiveStt(!!d.live);
     });
     es.addEventListener('reply', (e) => receive(JSON.parse((e as MessageEvent).data)));
     es.onerror = () => setAvail(false);
@@ -329,7 +335,7 @@ export default function Entrance() {
 
   /* ---------- screens ---------- */
   const askTile = avail && (
-    <Choice big icon="chat" label={ENT.ask.label} sub={ENT.ask.homeSub} onClick={openAsk} />
+    <Choice big icon="chat" label={<>{ENT.ask.label}<span className="live-pill"><i aria-hidden="true" />{ENT.ask.live}</span></>} sub={ENT.ask.homeSub} onClick={openAsk} />
   );
   const src = <p className="src">From the Main Library guide · checked <T s={ENT.checkedDate} /></p>;
 
@@ -340,7 +346,7 @@ export default function Entrance() {
           <div className="info">
             <span className="eyebrow">Welcome to the Main Library</span>
             <h1 className="title" tabIndex={-1}>What brings you in today?</h1>
-            <p className="lead">{avail ? 'Ask a library assistant anything, or tap a place to find it.' : 'Tap a place to find it. Staff are always one tap away.'}</p>
+            <p className="lead">{avail ? 'Chat live with a library assistant, or tap a place to find it.' : 'Tap a place to find it. Staff are always one tap away.'}</p>
           </div>
           <div className="act">
             {askTile && <div className="ask-tile">{askTile}</div>}
@@ -420,7 +426,7 @@ export default function Entrance() {
         <span className="chat-avatar" aria-hidden="true"><Icon n="user" /></span>
         <span className="chat-h-text">
           <span className="sh-t" id="ask-t">{ENT.ask.label}</span>
-          <span className="chat-ctx">{s.askContext}</span>
+          <span className="chat-ctx">{avail && <span className="live-dot"><i aria-hidden="true" />{ENT.ask.live}</span>}{s.askContext}</span>
         </span>
         <button className="xbtn" onClick={closeAsk}><Icon n="x" />Close</button>
       </div>
@@ -708,7 +714,7 @@ export default function Entrance() {
           </div>
         )}
       </div>
-      {config.fit && <a className="devbadge" href="/links" title="Prototype index: all pages and flags">Prototype index</a>}
+      {config.fit && showIndex && <a className="devbadge" href="/links" title="Prototype index: all pages and flags">Prototype index</a>}
     </div>
   );
 }

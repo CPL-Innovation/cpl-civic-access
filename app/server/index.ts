@@ -16,8 +16,10 @@
  *      STAFF_PASSCODE (optional: set it to require a passcode for /staff; unset = open, no sign-in),
  *      ALLOWED_ORIGINS (comma-separated sites allowed to call /api from a browser, e.g. the Vercel URL; default *),
  *      ASK_DEFAULT=off, CARDS_CHAT_DEFAULT=off (start with those console switches off; both default to on),
+ *      VOICE_ENGINE_DEFAULT=browser (start with built-in speech recognition instead of OpenAI),
  *      OPENAI_API_KEY (turns on server-side voice transcription, the fallback for devices whose speech service fails),
- *      OPENAI_TRANSCRIBE_MODEL (default gpt-4o-transcribe), TRANSCRIBE_FAKE=1 (canned transcript, for testing without a key)
+ *      OPENAI_TRANSCRIBE_MODEL (default gpt-4o-transcribe), TRANSCRIBE_FAKE=1 (canned transcript, for testing without a key),
+ *      OPENAI_LIVE_MODEL (default gpt-live-transcribe), OPENAI_REALTIME_URL (default wss://api.openai.com/v1/realtime?intent=transcription)
  */
 import http from 'node:http';
 import fs from 'node:fs';
@@ -35,6 +37,11 @@ const OPENAI_KEY = process.env.OPENAI_API_KEY || '';
 const STT_MODEL = process.env.OPENAI_TRANSCRIBE_MODEL || 'gpt-4o-transcribe';
 const STT_FAKE = process.env.TRANSCRIBE_FAKE === '1';
 const sttAvailable = () => !!OPENAI_KEY || STT_FAKE;
+/* Live transcription: words stream back while the patron is still speaking (OpenAI Realtime, gpt-live-transcribe). */
+const LIVE_MODEL = process.env.OPENAI_LIVE_MODEL || 'gpt-live-transcribe';
+const REALTIME_URL = process.env.OPENAI_REALTIME_URL || 'wss://api.openai.com/v1/realtime?intent=transcription';
+const liveAvailable = () => !!OPENAI_KEY;
+const STT_KEYWORDS = ['Main Library', 'TechCentral', 'library card', 'holds', '3D printing'];
 /** A short hint of the vocabulary patrons use at this kiosk improves accuracy on names. */
 const STT_PROMPT = 'A patron at the Cleveland Public Library Main Library entrance asks a short question: restrooms, library card, holds, returns, TechCentral, printing, 3D printing, study rooms.';
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '*').split(',').map((o) => o.trim().replace(/\/+$/, '')).filter(Boolean);
@@ -77,12 +84,20 @@ interface Thread {
 interface Features {
   /** Tapping a place card on Home opens the Ask chat with that card's question as the first message (only while Ask is available). */
   cardsOpenChat: boolean;
+  /** Voice transcription: 'live' = OpenAI Realtime, words while speaking; 'server' = OpenAI after they stop; 'browser' = the device's built-in recognizer (OpenAI as the fallback). */
+  voiceEngine: 'live' | 'server' | 'browser';
+  /** The small "Prototype index" link in the kiosk's corner (for demos; hide it on a real kiosk). */
+  showIndex: boolean;
 }
-const FEATURE_KEYS: (keyof Features)[] = ['cardsOpenChat'];
+const FEATURE_KEYS: (keyof Features)[] = ['cardsOpenChat', 'showIndex'];
 
 const state = {
   // Both start on. Ask still only shows while a console is connected (see availability()).
-  features: { cardsOpenChat: process.env.CARDS_CHAT_DEFAULT !== 'off' } as Features,
+  features: {
+    cardsOpenChat: process.env.CARDS_CHAT_DEFAULT !== 'off',
+    showIndex: process.env.SHOW_INDEX_DEFAULT === 'on',
+    voiceEngine: (['live', 'server', 'browser'] as const).find((v) => v === process.env.VOICE_ENGINE_DEFAULT) ?? 'live',
+  } as Features,
   askOn: process.env.ASK_DEFAULT !== 'off',
   ignoreHours: false,
   threads: new Map<string, Thread>(),
@@ -140,18 +155,85 @@ setInterval(() => { if (JSON.stringify(availability()) !== lastAvail) pushAvaila
 // Keep proxies from closing quiet streams.
 setInterval(() => { for (const c of clients.values()) c.res.write(': ping\n\n'); }, 25_000);
 
-function kioskStatus() { return { ...availability(), replyTimeoutS: REPLY_TIMEOUT_S, features: state.features, transcribe: sttAvailable() }; }
+function kioskStatus() { return { ...availability(), replyTimeoutS: REPLY_TIMEOUT_S, features: state.features, transcribe: sttAvailable(), live: liveAvailable() }; }
 
 function settings() {
   return {
     askOn: state.askOn, ignoreHours: state.ignoreHours,
     hoursSet: hours.windows.length > 0, insideHours: insideHours(), endDate: hours.endDate,
     passcodeRequired: !!PASSCODE,
+    transcribe: sttAvailable(),
+    live: liveAvailable(),
     features: state.features,
     kiosksOnline: new Set([...clients.values()].filter((c) => c.kind === 'kiosk').map((c) => c.kiosk)).size,
     replyTimeoutS: REPLY_TIMEOUT_S,
     ...availability(),
   };
+}
+
+/* ---------------- live transcription sessions ---------------- */
+
+/**
+ * One per patron who is speaking: the kiosk POSTs ~100 ms PCM16 chunks, the relay forwards them to an
+ * OpenAI Realtime WebSocket, and words come back on the kiosk's /api/live/start response (NDJSON).
+ * Audio is forwarded, never stored. A session closes on completion, cancel, kiosk disconnect, or 40 s.
+ */
+interface Live { ws: WebSocket; res: http.ServerResponse; open: boolean; queue: string[]; done: boolean; timer: ReturnType<typeof setTimeout> }
+const lives = new Map<string, Live>();
+
+function endLive(id: string, last?: unknown) {
+  const l = lives.get(id);
+  if (!l) return;
+  lives.delete(id);
+  l.done = true;
+  clearTimeout(l.timer);
+  try { if (last) l.res.write(JSON.stringify(last) + '\n'); l.res.end(); } catch { /* kiosk gone */ }
+  try { l.ws.close(); } catch { /* already closed */ }
+}
+function sendLive(l: Live, ev: unknown) {
+  const msg = JSON.stringify(ev);
+  if (l.open) l.ws.send(msg); else l.queue.push(msg);
+}
+
+function startLive(res: http.ServerResponse, debug: URLSearchParams | null = null): string {
+  const id = crypto.randomUUID();
+  res.writeHead(200, { 'content-type': 'application/x-ndjson', 'cache-control': 'no-store', 'x-accel-buffering': 'no' });
+  res.write(JSON.stringify({ id }) + '\n');
+  // Node 22's built-in WebSocket (undici) accepts headers in its init object.
+  const ws = new WebSocket(REALTIME_URL, { headers: { Authorization: 'Bearer ' + OPENAI_KEY } } as unknown as string[]);
+  const l: Live = { ws, res, open: false, queue: [], done: false, timer: setTimeout(() => endLive(id, { error: 'time limit' }), 40_000) };
+  lives.set(id, l);
+  ws.addEventListener('open', () => {
+    ws.send(JSON.stringify({
+      type: 'session.update',
+      session: {
+        type: 'transcription',
+        audio: {
+          input: {
+            format: { type: 'audio/pcm', rate: 24000 },
+            transcription: {
+              model: LIVE_MODEL, languages: ['en'], delay: debug?.get('delay') || 'low',
+              ...(debug?.get('bare') === '1' ? {} : { prompt: STT_PROMPT, keywords: STT_KEYWORDS }),
+            },
+            turn_detection: null,
+          },
+        },
+      },
+    }));
+    l.open = true;
+    for (const m of l.queue.splice(0)) ws.send(m);
+  });
+  ws.addEventListener('message', (e: MessageEvent) => {
+    let ev: { type?: string; delta?: string; transcript?: string; error?: { message?: string } };
+    try { ev = JSON.parse(String(e.data)); } catch { return; }
+    if (debug) res.write(JSON.stringify({ ev: ev.type, ...(ev.type?.includes('delta') || ev.type === 'input_audio_buffer.append' ? {} : { raw: String(e.data).slice(0, 400) }) }) + '\n');
+    if (ev.type === 'conversation.item.input_audio_transcription.delta' && ev.delta) res.write(JSON.stringify({ delta: ev.delta }) + '\n');
+    else if (ev.type === 'conversation.item.input_audio_transcription.completed') endLive(id, { done: ev.transcript || '' });
+    else if (ev.type === 'error') { console.error('live: provider error', ev.error?.message); endLive(id, { error: ev.error?.message || 'provider error' }); }
+  });
+  ws.addEventListener('error', () => { console.error('live: websocket error'); endLive(id, { error: 'connection' }); });
+  ws.addEventListener('close', (e: CloseEvent) => { if (!l.done) { console.error('live: closed', e.code, e.reason); endLive(id, { error: 'closed ' + e.code }); } });
+  return id;
 }
 
 /* ---------------- the log (derived; no identifiers) ---------------- */
@@ -353,6 +435,36 @@ async function api(req: http.IncomingMessage, res: http.ServerResponse, url: URL
     return;
   }
 
+  /* --- voice: live transcription (words while speaking) --- */
+  if (p === '/api/live/start' && req.method === 'POST') {
+    if (!liveAvailable()) return json(res, 503, { error: 'Live transcription isn’t set up on this relay.' });
+    const id = startLive(res, url.searchParams.get('debug') === '1' ? url.searchParams : null);
+    res.on('close', () => endLive(id)); // the kiosk went away
+    return;
+  }
+  if (p === '/api/live/audio' && req.method === 'POST') {
+    const l = lives.get(str(url.searchParams.get('id'), 64));
+    if (!l) return json(res, 404, { error: 'no live session' });
+    const parts: Buffer[] = [];
+    let size = 0;
+    for await (const c of req) { size += (c as Buffer).length; if (size > 200_000) return json(res, 413, { error: 'chunk too large' }); parts.push(c as Buffer); }
+    sendLive(l, { type: 'input_audio_buffer.append', audio: Buffer.concat(parts).toString('base64') });
+    res.writeHead(204); res.end();
+    return;
+  }
+  if (p === '/api/live/commit' && req.method === 'POST') {
+    const l = lives.get(str(url.searchParams.get('id'), 64));
+    if (!l) return json(res, 404, { error: 'no live session' });
+    sendLive(l, { type: 'input_audio_buffer.commit' });
+    res.writeHead(204); res.end();
+    return;
+  }
+  if (p === '/api/live/cancel' && req.method === 'POST') {
+    endLive(str(url.searchParams.get('id'), 64));
+    res.writeHead(204); res.end();
+    return;
+  }
+
   /* --- staff side --- */
   if (p === '/api/staff/login' && req.method === 'POST') {
     const b = await body(req);
@@ -398,6 +510,7 @@ async function api(req: http.IncomingMessage, res: http.ServerResponse, url: URL
     if (typeof b.ignoreHours === 'boolean') state.ignoreHours = b.ignoreHours;
     const f = (b.features || {}) as Record<string, unknown>;
     for (const k of FEATURE_KEYS) if (typeof f[k] === 'boolean') state.features = { ...state.features, [k]: f[k] as boolean };
+    if (f.voiceEngine === 'live' || f.voiceEngine === 'server' || f.voiceEngine === 'browser') state.features = { ...state.features, voiceEngine: f.voiceEngine };
     pushAvailability();
     return json(res, 200, settings());
   }

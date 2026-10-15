@@ -168,3 +168,9 @@ html,body{margin:0;height:100%}
   @keyframes st-in{from{transform:translateX(100%)}}
   @keyframes st-fade{from{opacity:0}}
 }
+.st-setting.column{flex-direction:column;align-items:stretch}
+.st-choices{display:flex;flex-direction:column;gap:var(--s2)}
+.st-choice{display:flex;gap:var(--s3);align-items:flex-start;padding:var(--s3);border:1px solid var(--line);border-radius:6px;cursor:pointer;font-size:14px;line-height:1.45;background:var(--white)}
+.st-choice.on{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.st-choice input{margin-top:3px;width:18px;height:18px;accent-color:var(--ink);flex:none}
+.st-warn{font-size:13px;background:var(--butter);color:var(--ink);padding:var(--s2) var(--s3);border-radius:4px}

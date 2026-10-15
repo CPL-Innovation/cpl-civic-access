@@ -10,6 +10,14 @@
 .ask-tile .choice{border-color:var(--cpl-navy);box-shadow:inset 0 0 0 1px var(--cpl-navy),var(--shadow-1)}
 .ask-tile .cic{background:var(--cpl-butter);color:var(--cpl-navy-ink)}
 .hc .ask-tile .cic{background:#FFF200;color:#000}
+/* "Live now": a person is at the console. Shown only while Ask is available, so it's always true. */
+.live-pill{display:inline-flex;align-items:center;gap:.4em;margin-left:.6em;padding:.15em .6em;border-radius:999px;background:color-mix(in srgb,var(--cpl-ivy) 14%,transparent);color:#2F6A2A;font-size:.74em;font-weight:700;letter-spacing:.02em;vertical-align:.12em;white-space:nowrap}
+.live-pill i,.live-dot i{position:relative;width:.62em;height:.62em;border-radius:50%;background:var(--cpl-ivy);flex:none}
+.live-pill i::after,.live-dot i::after{content:"";position:absolute;inset:0;border-radius:50%;background:var(--cpl-ivy);animation:livePulse 1.8s ease-out infinite}
+@keyframes livePulse{from{transform:scale(1);opacity:.6}to{transform:scale(2.6);opacity:0}}
+.live-dot{display:inline-flex;align-items:center;gap:.4em;margin-right:.6em;color:#2F6A2A;font-weight:700}
+.hc :is(.live-pill,.live-dot){background:none;color:inherit}
+@media (prefers-reduced-motion:reduce){.live-pill i::after,.live-dot i::after{animation:none}}
 .dir-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 .dir-grid .choice{padding:var(--sp-3) var(--sp-4);min-height:2.8em}
 .dir-grid .cic{width:1.9em;height:1.9em}

@@ -72,7 +72,7 @@ const V_CONTINUOUS = QS.get('continuous') === '1';
  * Server transcription (the relay → OpenAI) is the fallback: used when the relay has it switched on and
  * this device can't rely on its own speech service — Android (which hands recognition to a system service
  * many kiosks don't have), no built-in recognizer at all, or after the built-in one has failed once.
- * ?stt=server|browser forces one path, for testing.
+ * ?stt=live|server|browser forces one path, for testing.
  */
 const STT_FLAG = QS.get('stt');
 const IS_ANDROID = typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent);
@@ -95,7 +95,9 @@ const ERRORS: Record<string, string> = {
   network: 'Voice needs a network connection right now. You can type your question instead.',
 };
 
-export function useVoice(opts: { server: boolean; session: string | null }) {
+export type VoiceEngine = 'live' | 'server' | 'browser';
+
+export function useVoice(opts: { server: boolean; live?: boolean; session: string | null; engine?: VoiceEngine }) {
   const optsRef = useRef(opts);
   optsRef.current = opts;
   const [state, setState] = useState<VoiceState>('idle');
@@ -119,6 +121,8 @@ export function useVoice(opts: { server: boolean; session: string | null }) {
   const media = useRef<{ stream: MediaStream; rec: MediaRecorder; ctx: AudioContext; raf: number; chunks: Blob[]; type: string; spoke: boolean } | null>(null);
   const upload = useRef<AbortController | null>(null);
   const [usingServer, setUsingServer] = useState(false);
+  /* Live path: PCM capture, the relay session id, chunks waiting to go, and the words stream. */
+  const liveRef = useRef<{ stream: MediaStream; ctx: AudioContext; node: ScriptProcessorNode; raf: number; id: string; pending: Int16Array[]; sending: boolean; stopped: boolean; spoke: boolean; ac: AbortController; text: string } | null>(null);
 
   const stopLevel = () => {
     const a = audio.current;
@@ -218,6 +222,156 @@ export function useVoice(opts: { server: boolean; session: string | null }) {
     m.raf = requestAnimationFrame(tick);
   };
 
+  /**
+   * Live path (OpenAI Realtime through the relay): 24 kHz PCM16 goes up in ~100 ms chunks while the patron
+   * speaks, and words come back on the same stream as they're recognized. The relay commits the audio when
+   * we detect the pause; the final transcript then goes to review. If the relay can't open a live session,
+   * this falls back to recording and transcribing after (startServer).
+   */
+  const startLive = async () => {
+    log('live path: streaming');
+    let stream: MediaStream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 } });
+    } catch { fail(ERRORS['not-allowed']); return; }
+    if (cancelled.current) { stream.getTracks().forEach((t) => t.stop()); return; }
+    // Chrome resamples the mic to the context's rate, so asking for 24 kHz gives the format the API wants.
+    let ctx: AudioContext;
+    try { ctx = new AudioContext({ sampleRate: 24000 }); } catch { ctx = new AudioContext(); }
+    ctx.resume().catch(() => {});
+    const rate = ctx.sampleRate;
+    log(`mic open · ${rate} Hz · ${ctx.state}`);
+    const src = ctx.createMediaStreamSource(stream);
+    const an = ctx.createAnalyser();
+    an.fftSize = 512;
+    src.connect(an);
+    const node = ctx.createScriptProcessor(2048, 1, 1);
+    src.connect(node);
+    node.connect(ctx.destination); // needed for onaudioprocess to fire; the output stays silent
+    const ac = new AbortController();
+    const l = { stream, ctx, node, raf: 0, id: '', pending: [] as Int16Array[], sending: false, stopped: false, spoke: false, ac, text: '' };
+    liveRef.current = l;
+
+    node.onaudioprocess = (e) => {
+      if (l.stopped) return;
+      const f = e.inputBuffer.getChannelData(0);
+      // Resample (only if the browser ignored 24 kHz) and convert to 16-bit.
+      const ratio = rate / 24000;
+      const n = Math.floor(f.length / ratio);
+      const out = new Int16Array(n);
+      for (let i = 0; i < n; i++) { const v = Math.max(-1, Math.min(1, f[Math.floor(i * ratio)])); out[i] = v < 0 ? v * 0x8000 : v * 0x7fff; }
+      e.outputBuffer.getChannelData(0).fill(0);
+      l.pending.push(out);
+      pump(l);
+    };
+
+    const buf = new Uint8Array(an.fftSize);
+    const started = performance.now();
+    let lastLoud = 0, smooth = 0;
+    const tick = () => {
+      if (l.stopped) return;
+      an.getByteTimeDomainData(buf);
+      let sum = 0;
+      for (let i = 0; i < buf.length; i++) { const v = (buf[i] - 128) / 128; sum += v * v; }
+      const rms = Math.min(1, Math.sqrt(sum / buf.length) * 4.5);
+      smooth = smooth * 0.7 + rms * 0.3;
+      barsRef.current?.style.setProperty('--lvl', smooth.toFixed(3));
+      const now = performance.now();
+      if (rms > 0.09) { lastLoud = now; if (!l.spoke) { l.spoke = true; setHeard(true); log('speech detected'); } }
+      if ((l.spoke && now - lastLoud > 1300) || (!l.spoke && now - started > 8000) || now - started > 20000) { endLive(l); return; }
+      l.raf = requestAnimationFrame(tick);
+    };
+    setHasLevel(true);
+    l.raf = requestAnimationFrame(tick);
+
+    // Open the session; the first line is its id, then {delta} lines, then {done} or {error}.
+    try {
+      const session = optsRef.current.session || '';
+      const r = await fetch(API + '/api/live/start?session=' + encodeURIComponent(session), { method: 'POST', signal: ac.signal });
+      if (!r.ok || !r.body) {
+        log('live start http ' + r.status + ' · falling back');
+        stopLive(l); liveRef.current = null;
+        if (!cancelled.current) startServer();
+        return;
+      }
+      const reader = r.body.getReader();
+      const dec = new TextDecoder();
+      let rest = '';
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        rest += dec.decode(value, { stream: true });
+        let nl: number;
+        while ((nl = rest.indexOf('\n')) >= 0) {
+          const line = rest.slice(0, nl).trim();
+          rest = rest.slice(nl + 1);
+          if (!line) continue;
+          const ev = JSON.parse(line) as { id?: string; delta?: string; done?: string; error?: string };
+          if (ev.id) { l.id = ev.id; log('live session open'); pump(l); }
+          if (ev.delta) { l.text += ev.delta; log('delta "' + ev.delta + '"'); const t = l.text.trimStart(); setFinal(t.charAt(0).toUpperCase() + t.slice(1)); }
+          if (typeof ev.done === 'string') { l.text = ev.done || l.text; log('done "' + l.text + '"'); }
+          if (ev.error) {
+            log('live error · ' + ev.error);
+            stopLive(l); liveRef.current = null;
+            if (!cancelled.current) fail('Voice didn’t work this time. You can type your question instead.');
+            return;
+          }
+        }
+      }
+      stopLive(l); liveRef.current = null;
+      if (cancelled.current) return;
+      if (!l.spoke && !l.text.trim()) { fail(ERRORS['no-speech']); return; }
+      toReview(l.text);
+    } catch (e) {
+      stopLive(l); liveRef.current = null;
+      if ((e as Error).name === 'AbortError' || cancelled.current) return;
+      log('live failed · ' + String(e));
+      fail(ERRORS.network);
+    }
+  };
+
+  /** Send waiting audio, one request at a time so chunks arrive in order. */
+  const pump = async (l: NonNullable<typeof liveRef.current>) => {
+    if (l.sending || !l.id) return;
+    l.sending = true;
+    try {
+      while (l.pending.length) {
+        const parts = l.pending.splice(0);
+        const total = parts.reduce((a, p) => a + p.length, 0);
+        const all = new Int16Array(total);
+        let o = 0;
+        for (const p of parts) { all.set(p, o); o += p.length; }
+        await fetch(API + '/api/live/audio?id=' + l.id, { method: 'POST', headers: { 'content-type': 'application/octet-stream' }, body: all.buffer, signal: l.ac.signal });
+      }
+      if (l.stopped && !cancelled.current) {
+        await fetch(API + '/api/live/commit?id=' + l.id, { method: 'POST', signal: l.ac.signal });
+        log('committed');
+      }
+    } catch { /* the words stream reports failures */ }
+    l.sending = false;
+  };
+
+  /** The pause after speech (or Done): stop the mic, send what's left, and ask for the final words. */
+  const endLive = (l: NonNullable<typeof liveRef.current>) => {
+    if (l.stopped) return;
+    stopLive(l);
+    if (!l.spoke && !l.text) { l.ac.abort(); if (l.id) fetch(API + '/api/live/cancel?id=' + l.id, { method: 'POST' }).catch(() => {}); liveRef.current = null; fail(ERRORS['no-speech']); return; }
+    setState('transcribing');
+    pump(l);
+  };
+
+  /** Release the microphone and audio graph (idempotent). */
+  const stopLive = (l: NonNullable<typeof liveRef.current>) => {
+    l.stopped = true;
+    cancelAnimationFrame(l.raf);
+    l.node.onaudioprocess = null;
+    try { l.node.disconnect(); } catch { /* already */ }
+    l.stream.getTracks().forEach((t) => t.stop());
+    l.ctx.close().catch(() => {});
+    setHasLevel(false);
+    barsRef.current?.style.setProperty('--lvl', '0');
+  };
+
   /** Upload the recording; words come back as NDJSON lines ({delta} … {done}). */
   const send = async (m: { chunks: Blob[]; type: string; spoke: boolean }) => {
     media.current = null;
@@ -264,8 +418,12 @@ export function useVoice(opts: { server: boolean; session: string | null }) {
 
   const start = useCallback(() => {
     const server = optsRef.current.server && HAS_RECORDER && VOICE_FLAG !== 'demo';
-    const useServer = STT_FLAG === 'server' ? HAS_RECORDER : STT_FLAG === 'browser' ? false
-      : server && (IS_ANDROID || !SRCtor || browserFailed);
+    // The console's "Voice transcription" setting: OpenAI live (default), OpenAI after speaking, or built-in with OpenAI as the fallback.
+    const engine = optsRef.current.engine || 'live';
+    const useLive = STT_FLAG === 'live' ? HAS_RECORDER : STT_FLAG ? false
+      : server && engine === 'live' && !!optsRef.current.live;
+    const useServer = useLive || (STT_FLAG === 'server' ? HAS_RECORDER : STT_FLAG ? false
+      : server && (engine !== 'browser' || IS_ANDROID || !SRCtor || browserFailed));
     setUsingServer(useServer);
     if (useServer) {
       rec.current?.abort(); rec.current = null;
@@ -275,7 +433,7 @@ export function useVoice(opts: { server: boolean; session: string | null }) {
       t0.current = performance.now();
       setDebugLog([]);
       setState('listening');
-      startServer();
+      if (useLive) startLive(); else startServer();
       return;
     }
     startBrowser();
@@ -351,6 +509,7 @@ export function useVoice(opts: { server: boolean; session: string | null }) {
 
   /** Done: stop listening and keep what was heard (onend hands it over). */
   const finish = useCallback(() => {
+    if (liveRef.current) { endLive(liveRef.current); return; }
     const m = media.current;
     if (m) { if (m.rec.state !== 'inactive') m.rec.stop(); return; }
     if (rec.current) {
@@ -369,6 +528,8 @@ export function useVoice(opts: { server: boolean; session: string | null }) {
     stopLevel();
     if (media.current) { if (media.current.rec.state !== 'inactive') media.current.rec.stop(); stopMedia(); media.current = null; }
     upload.current?.abort();
+    const l = liveRef.current;
+    if (l) { stopLive(l); l.ac.abort(); if (l.id) fetch(API + '/api/live/cancel?id=' + l.id, { method: 'POST' }).catch(() => {}); liveRef.current = null; }
     setState('idle'); setFinal(''); setInterim(''); setError('');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -376,7 +537,11 @@ export function useVoice(opts: { server: boolean; session: string | null }) {
   /** Leave review (after Send it): back to idle, transcript cleared. */
   const clear = useCallback(() => { setState('idle'); setFinal(''); setInterim(''); setError(''); }, []);
 
-  useEffect(() => () => { cancelled.current = true; rec.current?.abort(); stopLevel(); stopMedia(); upload.current?.abort(); }, []);
+  useEffect(() => () => {
+    cancelled.current = true; rec.current?.abort(); stopLevel(); stopMedia(); upload.current?.abort();
+    const l = liveRef.current;
+    if (l) { stopLive(l); l.ac.abort(); if (l.id) navigator.sendBeacon?.(API + '/api/live/cancel?id=' + l.id); }
+  }, []);
 
   /** The mic button shows if this device has a built-in recognizer, or can record for the server path. */
   const available = !!SRCtor || (opts.server && HAS_RECORDER);
