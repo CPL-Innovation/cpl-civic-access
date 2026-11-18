@@ -1,6 +1,6 @@
 /**
  * Main Library entrance kiosk — Cut 1 (Walkable).
- * Spec: vault build/entrance-kiosk/BUILD-entrance-kiosk.md, mockup-spec §13, §5 Phase 1, §2, §7, §12.
+ * Spec: design spec entrance-kiosk/BUILD-entrance-kiosk.md, mockup-spec §13, §5 Phase 1, §2, §7, §12.
  *
  * Same app, components, tokens, motion layer and session lifecycle as the
  * TechCentral kiosk. Every fact is a visible placeholder tag (forced on for

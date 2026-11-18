@@ -8,3 +8,6 @@ app/CPL-Design-System.html
 CLAUDE-CODE-PROMPT.md
 HANDOFF.md
 DESIGN-SYSTEM-REVISION-*.md
+CLAUDE.local.md
+**/.claude/settings.local.json
+**/.claude/worktrees/

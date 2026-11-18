@@ -4,7 +4,7 @@ The app serves three surfaces: the Main Library entrance kiosk (`/libraryentranc
 
 ## TechCentral concierge kiosk — clickable prototype
 
-The TechCentral prototype itself uses no backend and stores nothing (its assistant is a stub). See the [repo README](../README.md) for how it relates to the vault specs, the design system, and known gaps.
+The TechCentral prototype itself uses no backend and stores nothing (its assistant is a stub). See the [repo README](../README.md) for how it relates to the design spec, the design system, and known gaps.
 
 ```
 npm install

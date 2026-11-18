@@ -1,6 +1,6 @@
 /**
  * AI-drafted replies for the console. When a patron asks something, Claude reads the conversation and
- * the facts library (src/content/catalog.generated.json, synced from the vault) and drafts a reply.
+ * the facts library (src/content/catalog.generated.json, synced from the facts catalog) and drafts a reply.
  * A person always reviews it, edits if needed, and sends it: nothing reaches the kiosk from here.
  *
  * Grounding follows the catalog README:

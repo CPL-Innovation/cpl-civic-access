@@ -30,9 +30,9 @@ To try the live assistant:
 
 | Truth for… | Lives in |
 |---|---|
-| **Why and what:** product intent, the build slices, the mockup spec, the facts catalog | The project's Obsidian vault, `build/`: `BUILD-SPEC.md`, `entrance-kiosk/BUILD-entrance-kiosk.md`, `techcentral-pilot/mockup-spec.md`, `catalog/`. Read-only for coding agents |
+| **Why and what:** product intent, the build slices, the mockup spec, the facts catalog | The design spec, maintained outside this repo: `BUILD-SPEC.md`, `entrance-kiosk/BUILD-entrance-kiosk.md`, `techcentral-pilot/mockup-spec.md`, `catalog/`. Read-only for coding agents |
 | **How:** implementation | This repo |
-| **Proposed scope or intent changes from a build session** | The vault's `build/_FROM-BUILD.md`, the only file an agent may write there. Jungu merges it |
+| **Proposed scope or intent changes from a build session** | `_FROM-BUILD.md` in the design spec, the only spec file an agent may write. Jungu merges it |
 
 ## How it's built
 
@@ -91,7 +91,7 @@ The console is one screen for one person:
 - saved answers (tap to use, then edit) and locked answers (one tap, can't be edited);
 - a **source tag** on every reply: catalog fact, named source, or none, which is logged as a candidate catalog entry;
 - "Send to the desk now", which marks a handoff;
-- **Suggested replies (AI).** When a patron asks something, the relay asks Claude (Anthropic API) to draft a reply from the conversation and the **facts library** (the vault catalog, synced into `app/src/content/catalog.generated.json`). The draft appears above the reply box with the facts it relied on (and each fact's provenance), a note for staff, and **Send as is**, **Edit in the box**, or **Redraft**. Grounding follows the catalog README: catalog facts only; a placeholder fact is never stated as a value but appears as a `[[label]]` placeholder tag; locked copy (e.g. the safety stop) is chosen by id and inserted exactly as written; with no matching fact the card says so and you write the answer. Using a draft fills in the source tag, and the log's `draft` column records *sent as is* / *edited* / *not used*. Patrons aren't told. Drafts never reach the kiosk on their own. Code: `app/server/drafts.ts`;
+- **Suggested replies (AI).** When a patron asks something, the relay asks Claude (Anthropic API) to draft a reply from the conversation and the **facts library** (the facts catalog, synced into `app/src/content/catalog.generated.json`). The draft appears above the reply box with the facts it relied on (and each fact's provenance), a note for staff, and **Send as is**, **Edit in the box**, or **Redraft**. Grounding follows the catalog README: catalog facts only; a placeholder fact is never stated as a value but appears as a `[[label]]` placeholder tag; locked copy (e.g. the safety stop) is chosen by id and inserted exactly as written; with no matching fact the card says so and you write the answer. Using a draft fills in the source tag, and the log's `draft` column records *sent as is* / *edited* / *not used*. Patrons aren't told. Drafts never reach the kiosk on their own. Code: `app/server/drafts.ts`;
 - **Settings** (live, reset on relay restart). **Suggested replies**: on/off, and the drafting model (Claude Sonnet 5.5 by default; Opus 5.5, Haiku 5.5, or any model id typed in). Then the kiosk's patron-facing switches: **Place cards start a chat** (starts on), **Source and checked date on replies** (hidden by default: the kiosk's "From the Main Library guide · checked …" line and "Based on" chip), **Prototype index link** (hidden by default; show it for demos), and **Voice transcription**: OpenAI live (words while speaking, default), OpenAI after speaking, or the device's built-in recognizer with OpenAI as the fallback. When it's on and Ask is showing, tapping a place on Home opens the chat and sends that card's question as the patron's first message; when it's off, the card opens the place's info screen;
 - **Delete conversation** for a finished one (confirm step), or **Clear ended conversations** for all of them. Open conversations can't be deleted. Deleted ones also leave the log export;
 - an optional chime for new questions;
@@ -126,7 +126,7 @@ The kiosks also carry two labelled departures, pending the design-system revisio
 | `npm --prefix app run dev` | Relay on 5181 and Vite on 5180, which proxies `/api` |
 | `npm --prefix app run build` | Static build into `app/dist/` |
 | `npm --prefix app start` | The relay serves `app/dist/` and `/api` from one process (`RELAY_PORT` or `PORT`) |
-| `npm --prefix app run catalog:sync` | Copies the vault's `build/catalog/` frontmatter into `app/src/content/catalog.generated.json` (one way; fails on a `{{ref}}` to a missing fact). `CATALOG_DIR` overrides the vault path. Re-run after editing facts, then redeploy |
+| `npm --prefix app run catalog:sync` | Copies the facts catalog's frontmatter (from `CATALOG_DIR`, set in `app/.env.local`) into `app/src/content/catalog.generated.json` (one way; fails on a `{{ref}}` to a missing fact). Re-run after editing facts, then redeploy |
 
 **Relay environment variables:**
 - `STAFF_PASSCODE` (optional; unset means `/staff` is open with no sign-in)

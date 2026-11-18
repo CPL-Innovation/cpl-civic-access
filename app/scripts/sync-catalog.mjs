@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /**
- * One-way sync: the Obsidian vault's catalog (the facts library) → src/content/catalog.generated.json.
+ * One-way sync: the facts catalog (from the design spec) → src/content/catalog.generated.json.
  *
- *   npm run catalog:sync                      # default vault path below
+ *   npm run catalog:sync                      # reads CATALOG_DIR from app/.env.local
  *   CATALOG_DIR=/path/to/catalog npm run catalog:sync
  *
- * Reads only each file's YAML frontmatter (the markdown body is notes for humans). Never writes to the vault.
+ * Reads only each file's YAML frontmatter (the markdown body is notes for humans). Never writes to the catalog.
  * Fails if a {{entity.fact}} reference points at a fact that doesn't exist, as the catalog README requires.
  */
 import fs from 'node:fs';
@@ -14,11 +14,11 @@ import { fileURLToPath } from 'node:url';
 import YAML from 'yaml';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const DEFAULT_DIR = path.join(process.env.HOME || '', 'path/to/design-spec/catalog');
-const DIR = process.env.CATALOG_DIR || DEFAULT_DIR;
+const DIR = process.env.CATALOG_DIR;
 const OUT = path.resolve(here, '../src/content/catalog.generated.json');
 
-if (!fs.existsSync(DIR)) { console.error(`catalog: not found at ${DIR} (set CATALOG_DIR)`); process.exit(1); }
+if (!DIR) { console.error('catalog: CATALOG_DIR is not set (put it in app/.env.local)'); process.exit(1); }
+if (!fs.existsSync(DIR)) { console.error(`catalog: not found at ${DIR} (check CATALOG_DIR)`); process.exit(1); }
 
 const walk = (d) => fs.readdirSync(d, { withFileTypes: true }).flatMap((e) => e.isDirectory() ? (e.name === 'media' ? [] : walk(path.join(d, e.name))) : e.name.endsWith('.md') && e.name !== 'README.md' ? [path.join(d, e.name)] : []);
 
@@ -47,7 +47,7 @@ const counts = {};
 for (const files of Object.values(sections)) for (const f of files) for (const x of Object.values(f.facts || {})) counts[x.provenance || 'unset'] = (counts[x.provenance || 'unset'] || 0) + 1;
 
 fs.writeFileSync(OUT, JSON.stringify({
-  _generated: 'GENERATED from the vault catalog by scripts/sync-catalog.mjs. Do not edit: fix the fact in the vault, then run npm run catalog:sync.',
+  _generated: 'GENERATED from the facts catalog by scripts/sync-catalog.mjs. Do not edit: fix the fact in the catalog, then run npm run catalog:sync.',
   syncedAt: new Date().toISOString(),
   sections,
 }, null, 2) + '\n');

@@ -11,7 +11,7 @@
     "start": "node server/index.ts",
     "preview": "vite preview",
     "placeholders": "grep -rno '\\[\\[[^]]*\\]\\]' src/content",
-    "catalog:sync": "node scripts/sync-catalog.mjs"
+    "catalog:sync": "node --env-file-if-exists=.env.local scripts/sync-catalog.mjs"
   },
   "dependencies": {
     "qrcode": "^1.5.4",
